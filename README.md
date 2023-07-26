@@ -30,7 +30,7 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
        fgets(cadena, MAX, stdin);
        
                
-2. `getline()`: Esta función es algo mas sofisticada, reservando dinámicamente el espacio necesario para almacenar la cadena. Por esta razón, no se puede usar con array de char estáticos, sino que debe recibir un puntero a un array de char.  
+2. `getline()`: Esta función, **disponible a partir de C11**, es algo mas sofisticada, reservando dinámicamente el espacio necesario para almacenar la cadena. Por esta razón, no se puede usar con array de char estáticos, sino que debe recibir un puntero a un array de char.  
               
 	Para saber el tamaño de la cadena recibida, la función recibe un parámetro adicional por referencia que se actualizará con el tamaño recibido. 
               
