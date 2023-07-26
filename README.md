@@ -190,6 +190,8 @@ Además, hay otros problemas:
 	
 	- En el caso de `strncpy()` y `snprintf()`, si la cadena supera el tamaño solo se copiarán la cantidad de caracteres indicada por parámetro. 
 	
+	  Una ventaja de `snprintf()` respecto a `strncpy()` es que, en caso de que la cadena sea mas larga que el número de caracteres indicado, `snprintf()` corta la cadena añadiendo `\0` al final, cosa que `strncpy()` no hace.
+	
 	- En el caso de `strncmp()`, en caso de que la cadena no tenga `\0`, solo se comparará la cantidad de caracteres indicada por parámetro.
 	
 	La sintaxis de estas funciones es la siguiente:
@@ -213,7 +215,7 @@ Además, hay otros problemas:
 		    if(strncmp(cadena1, cadena2, 4) == 0) 
 	            printf(”Son iguales\n”);
 		    else{
-	            snprintf(cadena2, 5, “%s”, cadena1); //se copiará “abcde”
+	            snprintf(cadena2, 5, “%s”, cadena1); //copia "abcd\0"
 		    }
 		      
 		    return 0;
@@ -222,4 +224,14 @@ Además, hay otros problemas:
 
 2. **Alternativa para copiar cadenas: `strncat()`**
 
-	El uso de `strncpy()` presenta un problema: si la cadena a origen tiene una cantidad de caracteres mayor a la indicada por parámetro, copiará la cadena recortada al destino sin añadir el `\0`, lo cual 
+	El uso de `strncpy()` presenta un problema: si la cadena a origen tiene una cantidad de caracteres mayor a la indicada por parámetro, copiará la cadena recortada al destino sin añadir el `\0`, lo cual provocará problemas mas adelante.
+	
+	Una solución a esto es usar la función `strncat()` para concatenación de cadenas, que añade el `\0` al final de la cadena. Esta función necesita una cadena inicial, por lo que habrá que prepararla previamente.
+	
+	Un ejemplo de uso sería el siguiente:
+	
+		char cadena[] = "abcde";
+		char cadena2[4];
+		cadena2[0] = 0; 
+		strncat(cadena2, cadena1, 4);
+	
