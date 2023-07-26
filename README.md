@@ -14,7 +14,7 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
       
    Para evitarlo, existen distintas alternativas, según estemos en C o en C++
    
-#### Alternativas para C++
+#### Alternativas para C
     
 1. `fgets()`: El reemplazo mas sencillo es la función fgets(), que permite indicar un tamaño máximo de lectura. Esta función controla que la cadena recibida no sobrepase el tamaño indicado, cortando los caracteres restantes. 
 
