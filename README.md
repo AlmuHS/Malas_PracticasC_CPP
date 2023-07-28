@@ -283,4 +283,219 @@ Además, hay otros problemas:
 		string1 contains: hola
 		string1  contains: Hola
 	
+
+2. `std::string_view`
+
+	Esta clase, disponible desde C++17, permite realizar operaciones de lectura y consulta sobre cadenas de caracteres, tanto std::string como arrays de char.
 	
+	**WIP**
+	
+
+## Namespaces (C++)
+
+### Importación de namespaces global
+
+Una mala práctica habitual en C++ es añadir al inicio del fichero de código la sentencia
+
+	using namespace std; 
+
+Esta sentencia importa todo el espacio de nombres de las clases y funciones de la STL, de forma que puedas invocarlas sin tener que incluir el prefijo std:: 
+
+Pero esto es problemático: al importar todo el espacio de nombres de forma global, se produce un riesgo de colisión de nombres. Esto quiere decir que, si en tu programa hay alguna función o clase que tenga el mismo nombre que la de la STL el compilador no sabrá cual de ellas es la que se quiere usar. 
+
+Podemos poner como ejemplo las funciones std::getline() y getline(), de C++ y C respectivamente. Si tienes incluidas las librerias `<sstream>` y `<cstring>` en el mismo fichero y ponemos una llamada a `getline()` ¿a qué función estamos llamando?
+
+Pasaría lo mismo si quisieras crearte una clase llamada vector: cuando creemos el objeto de la clase ¿de qué clase lo estamos creando: vector o `std::vector`?
+
+#### Solución 1: Uso del prefijo std::
+
+La primera solución y mas sencilla es usar el prefijo std:: delante de cada clase o función de la STL. 
+
+De esta manera, no haría falta importar el namespace, además de hacer mas fácil la identificación de las funciones que provienen de la STL, de las propias o provenientes de otra librería.
+
+Un ejemplo de uso sería
+
+	std::cout<<”Hola mundo”<<std::endl;
+
+
+
+#### Solución 2: Importación local del namespace
+
+Otra alternativa es importarla, pero de forma local, en el ámbito mas pequeño posible donde lo queramos usar. 
+          
+	void cppflush(){
+		using namespace std;	
+		cin.ignore(numeric_limits<streamsize>::max(),'\n')
+	}
+
+#### Solución 3: Importación local de la librería o clase
+
+La última opción es usar la instrucción using de forma local pero, en vez de importar el namespace completo, importar únicamente la librería o clase a utilizar. 
+
+Siguiendo el ejemplo anterior, sería
+
+	void cppflush(){
+		using std::cin;	
+		cin.ignore(numeric_limits<streamsize>::max(),'\n')
+	}
+
+### Ficheros
+
+#### Escritura en ficheros binarios
+
+##### Mala práctica 1: Escritura de struct en ficheros sin serializar
+
+Una mala práctica habitual en C y C++ consiste en escribir un struct en un fichero en una sola operación, tal que
+      
+	struct datos{
+       int dato1;
+       float dato2;
+       char cadena[20];
+	 };
+	
+	…
+	
+	datos datos_obj;
+	datos_obj.dato1 = 1;
+    datos_obj.dato2 = 3.6;
+    strcpy(datos_obj.cadena, “cadena”);
+	      
+	ofstream fichero(“fichero.txt”, std::ios::binary)
+	fichero.write(fichero, (char*) &datos_obj, sizeof(datos));
+
+Este tipo de escritura presenta varios problemas, que pueden hacer que el fichero escrito en un sistema operativo no sea legible en otro sistema.
+Esto se debe a lo siguiente:
+
+- Los sistemas operativos, al almacenar un struct, no almacenan sus campos de forma completamente contigua en memoria (la siguiente dirección después de dato1 no tiene porqué ser la dirección inicial de dato2) , sino que los alinea añadiendo una memoria adicional llamada *padding*. Esta memoria se añade entre los campos para que los tamaños coincidan con los de los bloques de memoria. 
+          
+	El problema es que el tamaño del padding no está definido en el estándar, sino que es dependiente del compilador y del sistema operativo. 
+          
+	Esto implica que, al escribir el struct al fichero desde un sistema dado, este puede tener un tamaño de *padding* distinto al de otro sistema operativo que intente leer ese fichero, lo cual provocaría que el struct no se pudiera leer correctamente. 
+	
+- Otro problema, aunque este es mas evitable, es que el tamaño de los tipos de datos enteros (int, long…) es dependiente de la arquitectura y del sistema operativo, lo cual empeoraría el error anterior.
+
+	Aunque este se puede evitar usando los tipos de la librería stdint.h, que tienen tamaño fijo. Estos son int32_t, int16_t, uint32_t … etc 
+
+Las soluciones existentes para resolver este problema son:
+
+1. **Eliminación del padding y uso de tipos stdint.h**
+
+	Esta solución es la mas básica. Es fácil de hacer, pero no es la forma mas ideal de proceder. 
+	          
+	Consiste en “empaquetar” el struct eliminando el padding, de forma que los campos queden completamente contiguos unos a otros independientemente del sistema operativo. 
+	          
+	Esto evita el problema de que el padding sea distinto en escritura y lectura, aunque no deja de ser una argucia para evitar crear un serializador.
+	          
+	Para aplicarlo, justo antes de la declaración del struct, hay que aplicar la directiva 
+	          
+		#pragma pack(push, 1)
+	          
+	para desactivar el padding. Y, después de la declaración del struct, para que se siga aplicando el padding a otras estructuras, se vuelve a activar con
+	          
+		#pragma pack(pop)
+		
+	A su vez, para evitar que el tamaño de los tipos enteros cambien según el sistema,  se puede utilizar la librería stdint.h , que define los tipos a partir de su tamaño y signo: `int32_t`, `uint32_t`, `int16_t`, `uint16_t` … 
+	
+   Un ejemplo de uso en C++, partiendo del ejemplo anterior, sería
+
+		#include <cstdint>
+		
+		#pragma pack(push, 1)
+		struct datos{
+	          int32_t dato1;
+	          float dato2;
+	          uint8_t cadena[20];
+         }
+         #pragma pack(pop)
+		
+		…
+		
+		 datos datos_obj;
+		 datos_obj.dato1 = 1;
+		       datos_obj.dato2 = 3.6;
+		       strcpy(datos_obj.cadena, “cadena”);
+		      
+		 std::ofstream fichero(“fichero.txt”, std::ios::binary)
+		 fichero.write(fichero, (char*) &datos_obj, sizeof(datos));
+
+2. **Creación de un serializador**
+
+	Esta solución es mas profesional. Consiste en crear una función que serialice la escritura, escribiendo el struct campo a campo con el formato adecuado. Para leer se debe crear otra función análoga, que lea campo a campo en el mismo orden y formato que se ha escrito en el fichero. 
+	          
+	Esto nos permite asegurar que los datos se lean en el orden y formato adecuados, independientemente del sistema operativo, ya que, al escribir los datos por separado, no hay padding.
+
+    Un ejemplo en C++, partiendo del ejemplo anterior, sería:
+          
+          struct datos{
+             int32_t dato1;
+             float dato2;
+             uint8_t cadena[20];
+          }
+		… 
+          
+          
+       void serializador_escritura_struct(std::ofstream fichero, const datos &datos_obj){
+               fichero << dato1 << dato2 << strlen(cadena) << cadena << ‘\n’ ;
+        }
+          
+	   void deserializador_lectura_struct(std::ifstream fichero, datos &datos_obj){
+              uint16_t tam_cadena;
+		
+              fichero >> datos_obj.dato1;
+              fichero >> datos_obj.dato2;
+              fichero >> tam_cadena;
+              std::cin.getline(cadena, tam_cadena, ‘\n’);
+		              
+		}
+		          
+		… 
+		
+		std::ofstream fichero_out(“fichero.txt”, std::ios::binary);
+		struct datos datos_obj{ 1, 2.5, “cadena”};
+		serializador_escritura_struct(fichero, datos_obj);
+		          
+		… 
+		          
+		std::ifstream fichero_in(“fichero.txt”, std::ios::binary);
+        struct datos datos_in;
+        deserializador_lectura_struct(fichero_in, datos_in);
+
+3. **Serializador + sobrecarga de operadores (solo C++)**
+
+      Esta solución es idéntica a la anterior, pero usando la sobrecarga de los operadores >> y << para poder escribir y leer del fichero con esos operadores, sin tener que llamar a una función de forma explícita. 
+          
+		std::ostream& operator << (std::ostream& fichero_out, const datos datos_obj) {
+	           return fichero_out << dato1 << dato2 << strlen(cadena) << cadena << ‘\n’ ;
+	    }
+	
+	    std::istream& operator >> (std::istream& fichero_in, datos& datos_obj)
+        {
+          uint16_t tam_cadena;
+
+          fichero >> datos_obj.dato1;
+          fichero >> datos_obj.dato2;
+          fichero >> tam_cadena;
+          std::cin.getline(cadena, tam_cadena, ‘\n’);
+         
+          return fichero;
+        }
+	
+	              … 
+        std::ofstream fichero_out(“fichero.txt”, std::ios::binary);
+        struct datos datos_obj{ 1, 2.5, “cadena”};
+	    fichero_out << datos_obj;
+	          
+		… 
+	          
+       std::ifstream fichero_in(“fichero.txt”, std::ios::binary);      
+       struct datos datos_out;
+       
+       fichero_in >> datos_out;
+ 
+ 4. **Escritura en texto plano con separadores**
+ 
+      Esta solución es muy versátil, aunque puede tener cierta dificultad al implementarlo. Consiste en transformar todos los datos a cadenas de caracteres separadas mediante un caracter separador, y luego leerlos de la misma forma, transformándolos a sus tipos originales.
+      
+      Hay que tener en cuenta que si alguno de los datos es una cadena de caracteres, esta podrá incluir espacios, por lo que no sería recomendable usar el espacio como separador.
+      
+      WIP
