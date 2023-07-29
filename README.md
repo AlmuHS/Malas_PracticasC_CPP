@@ -236,55 +236,8 @@ Además, hay otros problemas:
 		strncat(cadena2, cadena1, 4);
 	
 #### Alternativas en C++
-
-1. `std::equal()` y `std::copy()`
-
-	La librería `<algorithm>` dispone de estas dos funciones que permiten comparar y copiar estructuras iterables (arrays, vectores, listas, colas...) posición a posición. Esto se puede usar para comparar arrays de char, incluso en los casos en los que no tienen `\0` al final.
 	
-	La sintaxis de estas funciones es
-	
-		template<class InputIterator1, class InputIterator2>
-		bool std::equal (InputIterator1 inicio1, InputIterator1 fin1, InputIterator2 inicio2)
-		
-		template<class InputIterator, class OutputIterator>
-		OutputIterator copy (InputIterator inicio_origen, InputIterator fin_origen, OutputIterator destino)
-		
-	`std::equal()` devolverá `true` si son iguales y `false` en caso contrario
-	`std::copy()` devolverá el iterador a la primera posición de la estructura destino
-	
-	En el caso de los arrays de C, el inicio será el array en sí (que pasará el el puntero a la primera posición). Para obtener el final de la cadena se usará `std::end()` , que devolverá el puntero a la última posición de la misma.
-	
-	Un ejemplo de uso para copiar y comparar arrays de char sería el siguiente:
-	
-		#include <iostream>
-		#include <algorithm>
-		
-		int main()
-		{
-		    std::cout << std::boolalpha;
-		    
-		    char string1[5] = "hola";
-		    char string2[5] = "hola";
-		    char string3[5] = "Hola";
-		    
-		    std::cout << "Are strings 1 & 2 equal? " << std::equal(string1, std::end(string1), string2) << '\n';
-		    std::cout << "Are strings 1 & 3 equal? " << std::equal(string1, std::end(string1), string3) << '\n';
-		
-		    std::cout << "string1 contains: " << string1 << '\n';
-		    std::copy(string3, std::end(string3), string1);
-		    std::cout << "string1  contains: " << string1;
-		    
-		} 
-		
-	Esto mostrará los siguientes resultados:
-	
-		Are strings 1 & 2 equal? true
-		Are strings 1 & 3 equal? false
-		string1 contains: hola
-		string1  contains: Hola
-	
-
-2. `std::string_view`
+1. `std::string_view`
 
 	Esta clase, disponible desde C++17, permite realizar operaciones de lectura y consulta sobre cadenas de caracteres, tanto std::string como arrays de char.
 	
