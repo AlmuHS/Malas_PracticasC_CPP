@@ -159,7 +159,7 @@ En este caso, no hay alternativa completa, pero existen algunas opciones para ut
  
 - **NCurses:** Muchas de sus funciones como `getch()`, están implementadas en la librería ncurses, compatible con múltiples sistemas operativos como Windows y GNU/Linux
 	
-- **Funciones propias de los sistemas operativos:** Jugando con las librerías estándar de cada sistema operativo, se pueden replicar algunas de las funciones mas conocidas. Por ejemplo, en este enlace comparto una implementación propia de getch() para Windows y GNU/Linux (bastante mejorable, pero funcional)
+- **Funciones propias de los sistemas operativos:** Jugando con las librerías estándar de cada sistema operativo, se pueden replicar algunas de las funciones mas conocidas. Por ejemplo, en este enlace comparto una implementación propia de `getch()` para Windows y GNU/Linux (bastante mejorable, pero funcional)
           
 	https://gist.github.com/AlmuHS/4dc6a74b7e7d409ac75138c3e857c252 
 		
@@ -499,3 +499,14 @@ Las soluciones existentes para resolver este problema son:
       Hay que tener en cuenta que si alguno de los datos es una cadena de caracteres, esta podrá incluir espacios, por lo que no sería recomendable usar el espacio como separador.
       
       WIP
+  
+
+
+### Punteros
+
+#### Mala práctica 1: uso de `NULL` en lugar de `nullptr` (c++)
+
+WIP
+
+#### Mala práctica 2: comprobación de éxito del operador `new` mediante comparación con `NULL` (c++)
+
