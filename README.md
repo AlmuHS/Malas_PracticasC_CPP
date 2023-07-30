@@ -545,14 +545,23 @@ Estas dos funciones recogen un único caracter y esperan a pulsar Enter para con
 
 El borrado de la consola sí es algo necesario en todos los sistemas. Pero, el comando `cls` solo existe en Windows. En Linux, el comando equivalente sería `clear`. 
 
-De momento no conozco ningún estándar portable entre sistemas, por lo que será necesario aplicar directivas de preprocesador para que compile funciones diferentes según la plataforma.
+En este caso, la solución es algo mas compleja: no existe ninguna función de la librería estándar que realice esta funcionalidad, por lo que tendremos que usar soluciones dependientes del sistema o recurrir a librerías externas.
+
+En caso de usar soluciones dependientes del sistema, habrá que aplicar directivas del proces
 
 
 - **Solución 1: Secuencias de escape de la consola**
 
+	Las consolas suelen disponer de una caracteristica llamada "secuencias de escape", que permiten realizar acciones de consola mediante la escritura de una cadena de caracteres. 
 	
-
-
+	En este caso, tanto Windows como Linux disponen de secuencias de escape para borrar la pantalla. 
+	
+	- En Linux, esta es `"\033c"`. Escribiendo esto dentro de un printf o cout podremos borrar la consola sin necesidad de llamadas adicionales.
+	
+			printf("\033c");	//Solución para C
+			std::cout<<"\033c";   //Solución para C++
+	
+	- En Windows, la secuencia de escape es "L"\x1b[2J"
 
 ## Punteros
 
