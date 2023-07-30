@@ -270,8 +270,6 @@ Un ejemplo de uso sería
 
 	std::cout<<”Hola mundo”<<std::endl;
 
-
-
 #### Solución 2: Importación local del namespace
 
 Otra alternativa es importarla, pero de forma local, en el ámbito mas pequeño posible donde lo queramos usar. 
@@ -467,8 +465,92 @@ Las soluciones existentes para resolver este problema son:
 
 ### Mala práctica 1: Uso de printf sin especificador de formato (C)
 
+La función `printf()` admite mostrar cadenas por pantalla sin necesidad de indicar el formato `"%s"`, tal que
+
+	printf("cadena");
+
+Pero esto, si se combina con cadenas recibidas desde teclado, puede ser problemático. Esto se daría en esta situación.
+
+	#include <stdio.h>
+
+	int main(){
+	  char cadena[20];
+	  printf("Introduce cadena: ");
+	  fgets(cadena, 20, stdin);
+	  
+	  printf(cadena);
+	}
+
+El problema sucede si el usuario introduce un especificador de formato como parte de la cadena introducida por teclado. Por ejemplo, si la cadena introducida fuera `"%i hola"` el `printf()` quedaría así:
+
+	printf("%i hola");
+
+Lo cual haría que el printf() esperara un número entero que no se ha aportado y mostrara un valor incorrecto.
+
+
+	Introduce cadena: Hola %i
+	Hola 543255663
+
+
+#### Solución
+
+La solución consiste en añadir el especificador de formato para cadenas, `"%s"`, al `printf()`
+
+	printf("%s", cadena);
+
+Esto, aplicado al ejemplo anterior, mostraría
+
+	Introduce cadena: Hola %i
+	Hola %i
+
 ### Mala práctica 2: Uso de system()
 
+La función `system()` permite ejecutar comandos en la terminal del programa, indicando el comando mediante una cadena de caracteres. 
+
+Esto puede resultar muy cómodo, pero entraña varios problemas:
+
+- Los comandos son dependientes del entorno de ejecucion y del sistema operativo, por lo que los programas no serían compatibles con otros sistemas
+
+- La orden `system()` es vulnerable a ataques de modificación del ejecutable. Si un atacante altera el ejecutable, podría reemplazar el comando invocado por otro con efectos malintencionados.
+
+#### Solución
+
+La solución más simple consiste en replicar el efecto de esos comandos mediante funciones de la librería estándar o de librerías externas.
+
+En este caso, explicaré alternativas para `system("pause")` y `system("cls")`
+
+##### Alternativas a `system("pause")`
+
+`system("pause")` es una llamada que ejecuta el comando `pause` de la consola de Windows. Esto hace que la consola se espere a la pulsación de una tecla antes de continuar la ejecución del programa, lo cual se suele usar para evitar que la consola se cierre al finalizar el programa.
+
+El comando `pause` solo existe en Windows, por lo que la llamada no será portable a otras plataformas, además de los problemas de seguridad comentados anteriormente.
+
+He de aclarar que el comportamiento de cerrar la consola al finalizar el programa es propio de la consola de Windows, siendo poco frecuente en otros sistemas y entornos de ejecución. Aún así, las soluciones que propondremos serán portables entre múltiples sistemas.
+
+En este caso, la solución es tan sencilla como llamar a cualquier función que espere la pulsación de Enter para continuar. Esto podría hacerse con `scanf()` en C y `std::cin` en C++, pero dado que no necesitamos guardar la cadena recibida, podemos usar funciones mas simples, que no requieren destino para ejecutarse.
+
+Esto es, en C
+
+	getchar()
+
+En C++
+	
+	std::cin.get()
+
+Estas dos funciones recogen un único caracter y esperan a pulsar Enter para continuar, con lo cual son soluciones sencillas para evitar este problema.
+
+##### Alternativas a `system("cls")`
+
+`system("cls")` es una llamada que provoca el borrado de la salida de consola. 
+
+El borrado de la consola sí es algo necesario en todos los sistemas. Pero, el comando `cls` solo existe en Windows. En Linux, el comando equivalente sería `clear`. 
+
+De momento no conozco ningún estándar portable entre sistemas, por lo que será necesario aplicar directivas de preprocesador para que compile funciones diferentes según la plataforma.
+
+
+- **Solución 1: Secuencias de escape de la consola**
+
+	
 
 
 
