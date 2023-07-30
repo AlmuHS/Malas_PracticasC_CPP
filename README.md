@@ -16,7 +16,7 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
    
 #### Alternativas para C
     
-1. `fgets()`: El reemplazo mas sencillo es la función fgets(), que permite indicar un tamaño máximo de lectura. Esta función controla que la cadena recibida no sobrepase el tamaño indicado, cortando los caracteres restantes. 
+1. `fgets()`: El reemplazo mas sencillo es la función `fgets()`, que permite indicar un tamaño máximo de lectura. Esta función controla que la cadena recibida no sobrepase el tamaño indicado, cortando los caracteres restantes. 
 
 	La sintaxis de la función es:
 			
@@ -54,7 +54,7 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
 		
 #### Alternativas para C++
 		 
-1. `std::cin.getline()`: En este caso podemos usar el método getline de la clase std::cin de la STL. Este es `cin.getline()`. Su sintaxis y funcionamiento es muy parecido al de fgets(), con el mismo efecto.
+1. `std::cin.getline()`: En este caso podemos usar el método getline de la clase std::cin de la STL. Este es `std::cin.getline()`. Su sintaxis y funcionamiento es muy parecido al de fgets(), con el mismo efecto.
 		  
 	Su sintaxis es:
 			
@@ -70,13 +70,13 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
             
  2. `std::getline()`: Esta función es similar a la anterior, pero mas genérica. En este caso, la cadena no se guarda en arrays de char sino en objetos de `std::string`. 
          
-    La sintaxis es similar a la anterior, pero usando std::istream como entrada y std::string como contenedor de la cadena. 
+    La sintaxis es similar a la anterior, pero usando `std::istream` como entrada y std::string como contenedor de la cadena. 
             
          std::getline(std::istream& stream_entrada, std::string& cadena_salida, char terminador)
 	             
-     El terminador es opcional, igual que en `cin.getline()`
+     El terminador es opcional, igual que en `std::cin.getline()`
              
-     **NOTA:** A diferencia de la getline() de C, en este caso los pasos se hacen por referencia y no por puntero, por lo que no hay que aplicar & al pasar los argumentos.
+     **NOTA:** A diferencia de la `getline()` de C, en este caso los pasos se hacen por referencia y no por puntero, por lo que no hay que aplicar & al pasar los argumentos.
              
      De nuevo, esta función está pensada para ficheros. En este caso, para indicar que se lea de teclado, se indicará como primer argumento `std::cin`
              
@@ -94,7 +94,7 @@ En este caso, el problema viene de que esta función solo libera el buffer de sa
 
 En este caso no hay solución directa, simplemente “recetas” para leer los caracteres del buffer hasta vaciarlo.  
 
-+ **Usando `getchar()`:**  La receta mas genérica y compatible es crear un bucle que llame a `getchar()` hasta encontrar un final de línea. Esta funciona en la mayoría de sistemas, a cambio de necesitar la librería string.h  
++ **Usando `getchar()`:**  La receta mas genérica y compatible es crear un bucle que llame a `getchar()` hasta encontrar un final de línea. Esta funciona en la mayoría de sistemas, a cambio de necesitar la librería `string.h`  
 	
 	La receta a seguir es:
 		
@@ -178,7 +178,7 @@ Pero, si la cadena no tiene el caracter `\0`, estas funciones seguirán recorrie
 
 Además, hay otros problemas:
 
-- `strcpy()` no comprueba que la cadena origen quepa en el array destino. Esto provoca que, si la cadena origen es mayor que el array destino, esta se escriba fuera de rango (igual que pasaba con el gets() ), pudiendo sobreescribir datos de otras variables o provocar el fallo del programa 
+- `strcpy()` no comprueba que la cadena origen quepa en el array destino. Esto provoca que, si la cadena origen es mayor que el array destino, esta se escriba fuera de rango (igual que pasaba con `gets()` ), pudiendo sobreescribir datos de otras variables o provocar el fallo del programa 
 
 - `sprintf()` presenta el mismo problema que strcpy, de manera que si la cadena no cabe en el destino, se escribirá fuera de rango.
 
@@ -190,7 +190,7 @@ Además, hay otros problemas:
 	
 	- En el caso de `strncpy()` y `snprintf()`, si la cadena supera el tamaño solo se copiarán la cantidad de caracteres indicada por parámetro. 
 	
-	  Una ventaja de `snprintf()` respecto a `strncpy()` es que, en caso de que la cadena sea mas larga que el número de caracteres indicado, `snprintf()` corta la cadena añadiendo `\0` al final, cosa que `strncpy()` no hace.
+	  Una ventaja de `snprintf()` respecto a `strncpy()` es que, en caso de que la cadena sea mas larga que el número de caracteres indicado, `snprintf()` añade el `\0` tras cortar la cadena, a diferencia de `strncpy()` que simplemente corta la cadena.
 	
 	- En el caso de `strncmp()`, en caso de que la cadena no tenga `\0`, solo se comparará la cantidad de caracteres indicada por parámetro.
 	
