@@ -288,15 +288,17 @@ La última opción es usar la instrucción using de forma local pero, en vez de 
 Siguiendo el ejemplo anterior, sería
 
 	void cppflush(){
-		using std::cin;	
+		using std::cin;
+		using std::numeric_limits;
+		using std::streamsize;
 		cin.ignore(numeric_limits<streamsize>::max(),'\n')
 	}
 
-### Ficheros
+## Ficheros
 
-#### Escritura en ficheros binarios
+### Escritura en ficheros binarios
 
-##### Mala práctica 1: Escritura de struct en ficheros sin serializar
+#### Mala práctica 1: Escritura de struct en ficheros sin serializar
 
 Una mala práctica habitual en C y C++ consiste en escribir un struct en un fichero en una sola operación, tal que
       
@@ -311,7 +313,7 @@ Una mala práctica habitual en C y C++ consiste en escribir un struct en un fich
 	datos datos_obj;
 	datos_obj.dato1 = 1;
     datos_obj.dato2 = 3.6;
-    strcpy(datos_obj.cadena, “cadena”);
+    strncpy(datos_obj.cadena, “cadena”, 20);
 	      
 	ofstream fichero(“fichero.txt”, std::ios::binary)
 	fichero.write(fichero, (char*) &datos_obj, sizeof(datos));
@@ -327,18 +329,23 @@ Esto se debe a lo siguiente:
 	
 - Otro problema, aunque este es mas evitable, es que el tamaño de los tipos de datos enteros (int, long…) es dependiente de la arquitectura y del sistema operativo, lo cual empeoraría el error anterior.
 
-	Aunque este se puede evitar usando los tipos de la librería stdint.h, que tienen tamaño fijo. Estos son int32_t, int16_t, uint32_t … etc 
+	Aunque este se puede evitar usando los tipos de la librería `stdint.h`, que tienen tamaño fijo. Estos son `int32_t`, `int16_t`, `uint32_t` … etc 
+
+- El último problema es el *endianess*. Esto consiste en que los datos se representan en la memoria del computador en mediante cadenas de bits en algún tipo de codificación binaria. Según la arquitectura, la representación irá del bit mas significativo al de menos, o viceversa.
+
+   La solución a este problema es bastante mas compleja, requiriendo escribir byte a byte y leyendo de forma diferente según el *endianess* correspondiente a cada arquitectura. **Dada la complejidad de esta solución, ignoraremos este problema, asumiendo *little endian* a la hora de escribir los datos**.
+
 
 Las soluciones existentes para resolver este problema son:
 
 1. **Eliminación del padding y uso de tipos stdint.h**
 
-	Esta solución es la mas básica. Es fácil de hacer, pero no es la forma mas ideal de proceder. 
+	Esta solución es la mas básica. Es fácil de hacer, pero no es la forma mas ideal de proceder, dado que **no es estándar y solo funciona en algunos compiladores y sistemas.**
 	          
-	Consiste en “empaquetar” el struct eliminando el padding, de forma que los campos queden completamente contiguos unos a otros independientemente del sistema operativo. 
+	Consiste en “empaquetar” el struct eliminando el *padding*, de forma que los campos queden completamente contiguos unos a otros independientemente del sistema operativo. 
 	          
-	Esto evita el problema de que el padding sea distinto en escritura y lectura, aunque no deja de ser una argucia para evitar crear un serializador.
-	          
+	Esto evita el problema de que el *padding* sea distinto en escritura y lectura, aunque no deja de ser una argucia para evitar crear un serializador.
+	
 	Para aplicarlo, justo antes de la declaración del struct, hay que aplicar la directiva 
 	          
 		#pragma pack(push, 1)
@@ -347,6 +354,8 @@ Las soluciones existentes para resolver este problema son:
 	          
 		#pragma pack(pop)
 		
+	**Esta directiva no está disponible en todos los compiladores, por lo que habrá que revisar la documentación de nuestro compilador para comprobar si está soportada por el mismo.**
+	
 	A su vez, para evitar que el tamaño de los tipos enteros cambien según el sistema,  se puede utilizar la librería stdint.h , que define los tipos a partir de su tamaño y signo: `int32_t`, `uint32_t`, `int16_t`, `uint16_t` … 
 	
    Un ejemplo de uso en C++, partiendo del ejemplo anterior, sería
@@ -454,12 +463,20 @@ Las soluciones existentes para resolver este problema son:
       WIP
   
 
+## Consola
 
-### Punteros
+### Mala práctica 1: Uso de printf sin especificador de formato (C)
 
-#### Mala práctica 1: uso de `NULL` en lugar de `nullptr` (c++)
+### Mala práctica 2: Uso de system()
+
+
+
+
+## Punteros
+
+### Mala práctica 1: uso de `NULL` en lugar de `nullptr` (c++)
 
 WIP
 
-#### Mala práctica 2: comprobación de éxito del operador `new` mediante comparación con `NULL` (c++)
+### Mala práctica 2: comprobación de éxito del operador `new` mediante comparación con `NULL` (c++)
 
