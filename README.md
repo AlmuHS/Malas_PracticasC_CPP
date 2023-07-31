@@ -549,26 +549,30 @@ En este caso, la solución es algo mas compleja: no existe ninguna función de l
 
 En caso de usar soluciones dependientes del sistema, habrá que aplicar directivas del procesador para que compile una solución diferente según el sistema desde el que se compile.
 
+**NOTA: Aunque `<conio.h>` dispone de funciones para esta tarea, ya hemos avisado de que su uso está fuertemente desaconsejado, por lo que no lo incluiremos como opción**
+
 
 - **Solución 1: Secuencias de escape de la consola**
 
 	Las consolas suelen disponer de una caracteristica llamada "secuencias de escape", que permiten realizar acciones de control de la consola mediante la escritura de una cadena de caracteres a la salida estándar.
 	
-	La secuencia de escape depende de la consola y del sistema operativo, aunque existen ciertos estándares seguidos por la mayoría de consolas. 
+	La secuencia de escape depende de la consola y del sistema operativo, aunque existen ciertos estándares seguidos por la mayoría de consolas, como el ANSI que usaremos en este caso.
 	
-	- En Linux, una secuencia de escape ampliamente soportada es `"\033c"`. Escribiendo esto dentro de un printf o cout podremos borrar la consola sin necesidad de llamadas adicionales.
+	Una secuencia de escape ANSI para borrar la consola es `"\033c"`. Escribiendo esto dentro de un printf o cout podremos borrar la consola sin necesidad de llamadas adicionales.
 	
-			printf("\033c");	//Solución para C
-			std::cout<<"\033c";   //Solución para C++
+		printf("\033c");	//Solución para C
+		std::cout<<"\033c";   //Solución para C++
 	
-	- En Windows, se puede utilizar la misma secuencia de escape, además de algunas otras, pero requiere que el emulador de terminal tenga activado el flag `ENABLE_VIRTUAL_TERMINAL_PROCESSING` para soportar este tipo de secuencias.
+	En Linux esta secuencia de escape está ampliamente soportada por la mayoría de consolas y emuladores de terminal, pero en Windows se requiere que el emulador de terminal tenga activado el flag `ENABLE_VIRTUAL_TERMINAL_PROCESSING` para soportar este tipo de secuencias.
 	
-		Este está activado por defecto en Windows Terminal, la terminal por defecto de Windows 11, pero en la terminal *cmd* de Windows 10 y anteriores se requiere activarlo manualmente.
+	Este flag está activado por defecto en *Windows Terminal*, la terminal por defecto de Windows 11, pero en la terminal *cmd* de Windows 10 y anteriores se requiere activarlo manualmente. 
 		
-		Desde C y C++, se puede activar usando `<windows.h>`, con el siguiente snippet de código.
+	Desde C y C++, se puede activar usando `<windows.h>`, con el siguiente snippet de código.
 		
 		
-			HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+		    #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+		    
+		    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 		    DWORD dwMode;
 		    GetConsoleMode(hOutput, &dwMode);
 		    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
@@ -576,9 +580,8 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 		        printf("SetConsoleMode failed."); //Sustituir por std::cout en C++
 		    }
 
-		Después de esto, se pondría la secuencia de escape de igual forma al ejemplo anterior.
+	Después de esto, se pondría la secuencia de escape de igual forma al ejemplo anterior.
 	
-
 	Siguiendo esta idea, y añadiendo las directivas de preprocesador oportunas para detectar el sistema operativo desde el que se está compilando, el código en C quedaría así:
 	
 		#include <stdio.h> 
@@ -612,7 +615,9 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 		}
 			 
 
-- **Solución 2: Uso de llamadas al sistema específicas de cada sistema operativo**
+- **Solución 2: Uso de APIs propias de cada sistema operativo**
+
+	
 
 	
 
