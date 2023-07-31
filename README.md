@@ -50,7 +50,7 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
        size_t caracteres_leidos;
        caracteres_leidos = getline(&cadena, &tamano, stdin);
     
-	**NOTA:** El puntero `cadena` se ha pasado como referencia intencionalmente, dado que la función necesita un puntero a un array de char dinámico (que se accede mediante un puntero).
+	**NOTA:** El puntero `cadena` se ha pasado mediante su dirección de memoria intencionalmente, dado que la función necesita un puntero a un array de char dinámico (que se accede mediante otro puntero).
 		
 #### Alternativas para C++
 		 
