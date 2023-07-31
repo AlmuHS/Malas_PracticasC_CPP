@@ -511,7 +511,7 @@ Esto puede resultar muy cómodo, pero entraña varios problemas:
 
 - Los comandos son dependientes del entorno de ejecucion y del sistema operativo, por lo que los programas no serían compatibles con otros sistemas
 
-- La orden `system()` es vulnerable a ataques de modificación del ejecutable. Si un atacante altera el ejecutable, podría reemplazar el comando invocado por otro con efectos malintencionados.
+- La orden `system()` es vulnerable a ataques de reemplazo del ejecutable. Si un atacante altera el ejecutable, podría reemplazar el comando invocado por otro con efectos malintencionados.
 
 #### Solución
 
@@ -551,7 +551,6 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 
 **NOTA: Aunque `<conio.h>` dispone de funciones para esta tarea, ya hemos avisado de que su uso está fuertemente desaconsejado, por lo que no lo incluiremos como opción**
 
-
 - **Solución 1: Secuencias de escape de la consola**
 
 	Las consolas suelen disponer de una caracteristica llamada "secuencias de escape", que permiten realizar acciones de control de la consola mediante la escritura de una cadena de caracteres a la salida estándar.
@@ -565,20 +564,20 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 	
 	En Linux esta secuencia de escape está ampliamente soportada por la mayoría de consolas y emuladores de terminal, pero en Windows se requiere que el emulador de terminal tenga activado el flag `ENABLE_VIRTUAL_TERMINAL_PROCESSING` para soportar este tipo de secuencias.
 	
-	Este flag está activado por defecto en *Windows Terminal*, la terminal por defecto de Windows 11, pero en la terminal *cmd* de Windows 10 y anteriores se requiere activarlo manualmente. 
+	Este flag está activado por defecto en *Windows Terminal*, la terminal por defecto de Windows 11 y en las últimas actualizaciones de Windows 10 de 2023, pero en la terminal *cmd* de Windows 10 y anteriores se requiere activarlo manualmente. 
 		
 	Desde C y C++, se puede activar usando `<windows.h>`, con el siguiente snippet de código.
 		
 		
-		    #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
-		    
-		    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-		    DWORD dwMode;
-		    GetConsoleMode(hOutput, &dwMode);
-		    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-		    if (!SetConsoleMode(hOutput, dwMode)) {
-		        printf("SetConsoleMode failed."); //Sustituir por std::cout en C++
-		    }
+	    #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+	    
+	    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	    DWORD dwMode;
+	    GetConsoleMode(hOutput, &dwMode);
+	    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	    if (!SetConsoleMode(hOutput, dwMode)) {
+	        printf("SetConsoleMode failed."); //Sustituir por std::cout en C++
+	    }
 
 	Después de esto, se pondría la secuencia de escape de igual forma al ejemplo anterior.
 	
@@ -617,8 +616,57 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 
 - **Solución 2: Uso de APIs propias de cada sistema operativo**
 
+	Cada sistema operativo dispone de APIs o librerías propias para controlar la consola desde lenguaje C. Haciendo uso de las mismas, podremos limpiar la pantalla sin depender de la compatibilidad con las secuencias de escape.
 	
+	Como incoveniente, en algunos casos dependeremos de librerías externas.
+	
+	- **En Windows, deberemos recurrir a WinAPI**, que dispone de funciones para controlar la consola. Existen múltiples formas de hacerlo, según queramos borrar la consola llenando todo su contenido con espacios y desplazando, o queramos realizar el borrado del contenido manualmente.
+	
+		En nuestro caso, utilizaremos la primera opción. Esto se hace con la siguiente función
+		
+			#include <windows.h>
+			
+			void cls()
+			{
+				HANDLE hConsole;
+    				hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+			
+			    CONSOLE_SCREEN_BUFFER_INFO csbi;
+			    SMALL_RECT scrollRect;
+			    COORD scrollTarget;
+			    CHAR_INFO fill;
+			
+			    // Get the number of character cells in the current buffer.
+			    if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
+			    {
+			        return;
+			    }
+			
+			    // Scroll the rectangle of the entire buffer.
+			    scrollRect.Left = 0;
+			    scrollRect.Top = 0;
+			    scrollRect.Right = csbi.dwSize.X;
+			    scrollRect.Bottom = csbi.dwSize.Y;
+			
+			    // Scroll it upwards off the top of the buffer with a magnitude of the entire height.
+			    scrollTarget.X = 0;
+			    scrollTarget.Y = (SHORT)(0 - csbi.dwSize.Y);
+			
+			    // Fill with empty spaces with the buffer's default text attribute.
+			    fill.Char.UnicodeChar = TEXT(' ');
+			    fill.Attributes = csbi.wAttributes;
+			
+			    // Do the scroll
+			    ScrollConsoleScreenBuffer(hConsole, &scrollRect, NULL, scrollTarget, &fill);
+			
+			    // Move the cursor to the top left corner too.
+			    csbi.dwCursorPosition.X = 0;
+			    csbi.dwCursorPosition.Y = 0;
+			
+			    SetConsoleCursorPosition(hConsole, csbi.dwCursorPosition);
+			}		
 
+	- En Linux (WIP)
 	
 
 
