@@ -545,23 +545,77 @@ Estas dos funciones recogen un único caracter y esperan a pulsar Enter para con
 
 El borrado de la consola sí es algo necesario en todos los sistemas. Pero, el comando `cls` solo existe en Windows. En Linux, el comando equivalente sería `clear`. 
 
-En este caso, la solución es algo mas compleja: no existe ninguna función de la librería estándar que realice esta funcionalidad, por lo que tendremos que usar soluciones dependientes del sistema o recurrir a librerías externas.
+En este caso, la solución es algo mas compleja: no existe ninguna función de la librería estándar que realice esta funcionalidad, por lo que tendremos que usar soluciones dependientes de entorno de ejecución (tanto sistema operativo como emulador de terminal) o recurrir a librerías externas.
 
-En caso de usar soluciones dependientes del sistema, habrá que aplicar directivas del proces
+En caso de usar soluciones dependientes del sistema, habrá que aplicar directivas del procesador para que compile una solución diferente según el sistema desde el que se compile.
 
 
 - **Solución 1: Secuencias de escape de la consola**
 
-	Las consolas suelen disponer de una caracteristica llamada "secuencias de escape", que permiten realizar acciones de consola mediante la escritura de una cadena de caracteres. 
+	Las consolas suelen disponer de una caracteristica llamada "secuencias de escape", que permiten realizar acciones de control de la consola mediante la escritura de una cadena de caracteres a la salida estándar.
 	
-	En este caso, tanto Windows como Linux disponen de secuencias de escape para borrar la pantalla. 
+	La secuencia de escape depende de la consola y del sistema operativo, aunque existen ciertos estándares seguidos por la mayoría de consolas. 
 	
-	- En Linux, esta es `"\033c"`. Escribiendo esto dentro de un printf o cout podremos borrar la consola sin necesidad de llamadas adicionales.
+	- En Linux, una secuencia de escape ampliamente soportada es `"\033c"`. Escribiendo esto dentro de un printf o cout podremos borrar la consola sin necesidad de llamadas adicionales.
 	
 			printf("\033c");	//Solución para C
 			std::cout<<"\033c";   //Solución para C++
 	
-	- En Windows, la secuencia de escape es "L"\x1b[2J"
+	- En Windows, se puede utilizar la misma secuencia de escape, además de algunas otras, pero requiere que el emulador de terminal tenga activado el flag `ENABLE_VIRTUAL_TERMINAL_PROCESSING` para soportar este tipo de secuencias.
+	
+		Este está activado por defecto en Windows Terminal, la terminal por defecto de Windows 11, pero en la terminal *cmd* de Windows 10 y anteriores se requiere activarlo manualmente.
+		
+		Desde C y C++, se puede activar usando `<windows.h>`, con el siguiente snippet de código.
+		
+		
+			HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+		    DWORD dwMode;
+		    GetConsoleMode(hOutput, &dwMode);
+		    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		    if (!SetConsoleMode(hOutput, dwMode)) {
+		        printf("SetConsoleMode failed."); //Sustituir por std::cout en C++
+		    }
+
+		Después de esto, se pondría la secuencia de escape de igual forma al ejemplo anterior.
+	
+
+	Siguiendo esta idea, y añadiendo las directivas de preprocesador oportunas para detectar el sistema operativo desde el que se está compilando, el código en C quedaría así:
+	
+		#include <stdio.h> 
+		
+		#ifdef _WIN32 || _WIN64 //Si estamos en Windows, activa las secuencias de escape desde WinAPI
+			#include <windows.h>
+			
+			#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+			
+			void clearscr(){
+			    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+			    DWORD dwMode;
+			    GetConsoleMode(hOutput, &dwMode);
+			    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+			    if (!SetConsoleMode(hOutput, dwMode)) {
+			        printf("SetConsoleMode failed.");
+			    }
+			    
+			    printf ("\033c");
+			    
+			}
+		#elif __linux__ || __unix__ //si estamos en Linux u otro sistema UNIX, aplica la secuencia directamente
+		
+			void clearscr(){
+			    printf("\033c");
+			}
+		#endif
+		
+		int main(void){
+			clearscr();
+		}
+			 
+
+- **Solución 2: Uso de llamadas al sistema específicas de cada sistema operativo**
+
+	
+
 
 ## Punteros
 
