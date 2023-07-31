@@ -590,15 +590,29 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 			
 			#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 			
-			void clearscr(){
-			    HANDLE hInput = GetStdHandle(STD_INPUT_HANDLE), hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-			    DWORD dwMode;
-			    GetConsoleMode(hOutput, &dwMode);
-			    dwMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-			    if (!SetConsoleMode(hOutput, dwMode)) {
-			        printf("SetConsoleMode failed.");
+			int enableANSI(){
+			    HANDLE hStdout;
+			    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+			
+			    DWORD mode = 0;
+			    if (!GetConsoleMode(hStdout, &mode))
+			    {
+			        return ::GetLastError();
 			    }
-			    
+			
+			    const DWORD originalMode = mode;
+			    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+			    // Try to set the mode.
+			    if (!SetConsoleMode(hStdout, mode))
+			    {
+			        return ::GetLastError();
+			    }
+			
+			    return 0;
+			}
+			
+			void clearscr(){
+			    enableANSI();
 			    printf ("\033c");
 			    
 			}
@@ -637,33 +651,31 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 			    CHAR_INFO fill;
 			
 			    // Get the number of character cells in the current buffer.
-			    if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
+			    if (GetConsoleScreenBufferInfo(hConsole, &csbi))
 			    {
-			        return;
-			    }
-			
-			    // Scroll the rectangle of the entire buffer.
-			    scrollRect.Left = 0;
-			    scrollRect.Top = 0;
-			    scrollRect.Right = csbi.dwSize.X;
-			    scrollRect.Bottom = csbi.dwSize.Y;
-			
-			    // Scroll it upwards off the top of the buffer with a magnitude of the entire height.
-			    scrollTarget.X = 0;
-			    scrollTarget.Y = (SHORT)(0 - csbi.dwSize.Y);
-			
-			    // Fill with empty spaces with the buffer's default text attribute.
-			    fill.Char.UnicodeChar = TEXT(' ');
-			    fill.Attributes = csbi.wAttributes;
-			
-			    // Do the scroll
-			    ScrollConsoleScreenBuffer(hConsole, &scrollRect, NULL, scrollTarget, &fill);
-			
-			    // Move the cursor to the top left corner too.
-			    csbi.dwCursorPosition.X = 0;
-			    csbi.dwCursorPosition.Y = 0;
-			
-			    SetConsoleCursorPosition(hConsole, csbi.dwCursorPosition);
+				    // Scroll the rectangle of the entire buffer.
+				    scrollRect.Left = 0;
+				    scrollRect.Top = 0;
+				    scrollRect.Right = csbi.dwSize.X;
+				    scrollRect.Bottom = csbi.dwSize.Y;
+				
+				    // Scroll it upwards off the top of the buffer with a magnitude of the entire height.
+				    scrollTarget.X = 0;
+				    scrollTarget.Y = (SHORT)(0 - csbi.dwSize.Y);
+				
+				    // Fill with empty spaces with the buffer's default text attribute.
+				    fill.Char.UnicodeChar = TEXT(' ');
+				    fill.Attributes = csbi.wAttributes;
+				
+				    // Do the scroll
+				    ScrollConsoleScreenBuffer(hConsole, &scrollRect, NULL, scrollTarget, &fill);
+				
+				    // Move the cursor to the top left corner too.
+				    csbi.dwCursorPosition.X = 0;
+				    csbi.dwCursorPosition.Y = 0;
+				
+				    SetConsoleCursorPosition(hConsole, csbi.dwCursorPosition);
+			   }
 			}		
 
 	- En Linux (WIP)
