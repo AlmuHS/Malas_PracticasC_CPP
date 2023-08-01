@@ -727,3 +727,11 @@ WIP
 
 ### Mala práctica 2: comprobación de éxito del operador `new` mediante comparación con `NULL` (c++)
 
+
+## Buenas prácticas
+
+### Uso de stdint.h para tipos enteros
+
+### Uso de stdbool.h para tipos booleanos (C)
+
+### Uso de `using as` en lugar de `typedef` en C++
