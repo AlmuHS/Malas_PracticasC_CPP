@@ -701,11 +701,11 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 			    setupterm( NULL, STDOUT_FILENO, &result );
 			    
 			    if (result > 0){
-			      putp( tigetstr( "clear" ) ); //clean screen
+			      printf( tigetstr( "clear" ) ); //clean screen
 			      
 			      char* e3 = tigetstr("E3"); //Remove scroll
 			      if(e3 != NULL)
-			        putp( tigetstr( "E3" ) );
+			        printf( tigetstr( "E3" ) );
 			        
 			    }
 			  }
