@@ -678,9 +678,46 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 			   }
 			}		
 
-	- En Linux (WIP)
+	- **En Linux, no hay una forma estándar de controlar la consola a bajo nivel, sino que el control de la consola está estandarizado bajo la librería ncurses.**
+	 
+	  En este caso, recurriremos a las secuencias de escape. Pero, para asegurar compatibilidad entre sistemas y terminales, usaremos *terminfo* para obtener la secuencia de escape correspondiente a nuestra consola. 
+	  
+	  Esta librería consultará en la base de datos de ncurses la secuencia correspondiente a la orden de control de la consola que nos interese, y devolverá la cadena asociada a la misma. Una vez obtenida la cadena de la secuencia de escape, la enviaremos a la salida estándar para aplicarla.
+	  
+	  En nuestro caso, la orden a consultar es "clear", que limpia la consola desplazando la salida y colocando el cursor al inicio.  
+	  Pero "clear" no borra el scroll, así que aún podríamos ver el contenido anterior desplazando hacia arriba. Para solucionarlo, usaremos otra orden llamada "E3". Dado que esta orden es una extensión del estándar, deberemos comprobar que está disponible antes de aplicarla.
+	  
+	  La función resultante (en C) quedará así:
+	  
+			#include <stdio.h>
+			#include <unistd.h>
+			#include <term.h>
+			
+			void ClearScreen()
+			{
+			  if (!cur_term)
+			  {
+			    int result;
+			    setupterm( NULL, STDOUT_FILENO, &result );
+			    
+			    if (result > 0){
+			      putp( tigetstr( "clear" ) ); //clean screen
+			      
+			      char* e3 = tigetstr("E3"); //Remove scroll
+			      if(e3 != NULL)
+			        putp( tigetstr( "E3" ) );
+			        
+			    }
+			  }
+			}
 	
+	Esta función depende de la librería `terminfo`. Esta hay que añadirla al linkador al compilar. 
+	
+		gcc [fichero_fuente].c -lterminfo -o [nombre_ejecutable]
 
+	En algunas distribuciones, `terminfo` pertenece a la librería `ncurses`. En este caso, habría que compilar con esta otra línea
+	
+		gcc [fichero_fuente].c -lncurses -o [nombre_ejecutable]
 
 ## Punteros
 
