@@ -364,7 +364,7 @@ Las soluciones existentes para resolver este problema son:
 		struct datos{
 	          int32_t dato1;
 	          float dato2;
-	          uint8_t cadena[20];
+	          char cadena[20];
          }
          #pragma pack(pop)
 		
@@ -372,8 +372,8 @@ Las soluciones existentes para resolver este problema son:
 		
 		 datos datos_obj;
 		 datos_obj.dato1 = 1;
-		       datos_obj.dato2 = 3.6;
-		       strcpy(datos_obj.cadena, “cadena”);
+		 datos_obj.dato2 = 3.6;
+		 strcpy(datos_obj.cadena, “cadena”);
 		      
 		 std::ofstream fichero(“fichero.txt”, std::ios::binary)
 		 fichero.write(fichero, (char*) &datos_obj, sizeof(datos));
@@ -454,13 +454,113 @@ Las soluciones existentes para resolver este problema son:
  
  4. **Escritura en texto plano con separadores**
  
-      Esta solución es muy versátil, aunque puede tener cierta dificultad al implementarlo. Consiste en transformar todos los datos a cadenas de caracteres separadas mediante un caracter separador, y luego leerlos de la misma forma, transformándolos a sus tipos originales.
+      Esta solución es muy versátil, aunque puede tener cierta dificultad al implementarlo. Consiste en escribir los datos en texto plano, en lugar de en forma binaria. 
       
-      Hay que tener en cuenta que si alguno de los datos es una cadena de caracteres, esta podrá incluir espacios, por lo que no sería recomendable usar el espacio como separador.
+      Para ello, es necesario transformar todos los datos a cadenas de caracteres separadas mediante un caracter separador, y luego leerlos de la misma forma, transformándolos a sus tipos originales. Hay que tener en cuenta que si alguno de los datos es una cadena de caracteres, esta podrá incluir espacios, por lo que no sería recomendable usar el espacio como separador.
+        
       
-      WIP
-  
-
+      Si estamos en C++, el operador << de std::ofstream ya realizará la conversión automáticamente a cadena de caracteres. En C habrá que realizar el proceso manualmente.
+      
+      
+      Una implementación de esta solución, en C++, sería esta. Aprovechamos las propiedades de std::string, una clase para cadenas de tamaño dinámico, para poder recoger las cadenas de caracteres sin necesidad de conocer su tamaño previamente. 
+      
+      Como separador de campos, se ha seleccionado el caracter '|', que es poco utilizado y con poco riesgo de confusión. Para leer cada campo en una sola operación, hemos utilizado `std::getline()`, que devuelve `std::string` y permite indicar un delimitador personalizado. 
+      
+      Finalmente, para convertir los datos a sus tipos originales, hemos utilizado `std::stringstream`, cargando los datos a un stream auxiliar y luego extrayendolo a sus campos originales. Otra opción hubiera sido `std::from_chars()` de C++17, que es mas preciso en algunos casos.
+      
+		#include <cstdio>
+		#include <iostream>
+		
+		#include <fstream>
+		#include <sstream>
+		#include <iomanip>
+		
+		#include <cstring>
+		#include <string>
+		#include <cstdint>
+		
+		struct datos{
+		       int32_t dato1;
+		       float dato2;
+		       char cadena[20];
+		};
+		          
+		          
+		void serializador_escritura_struct(std::ofstream& fichero_texto, const datos &datos_obj){  
+		       fichero_texto << datos_obj.dato1 << "|" << datos_obj.dato2 << "|"  << datos_obj.cadena << '\n' ;
+		}
+		
+		datos convertir_tipos_stringstream(std::string datos_str[4]){
+		       datos datos_obj;
+		
+		       //Creamos un stringstream auxiliar para copiar las cadenas a convertir
+		       std::stringstream stream_aux;
+		
+		       //Convertimos el primer dato a int
+		       stream_aux<<datos_str[0]; 
+		       stream_aux>>datos_obj.dato1;
+		
+		       //Convertimos el segundo dato a float
+		       stream_aux<<datos_str[1]; 
+		       stream_aux>>datos_obj.dato2;
+		
+		       //Convertimos el std::string a una cadena de caracteres
+		       snprintf(datos_obj.cadena, datos_str[3].length()+1, "%s", datos_str[3].c_str());
+		
+		       return datos_obj;
+		
+		}
+		
+		void deserializador_lectura_struct(std::ifstream& fichero, datos &datos_obj){
+		       
+		       std::string datos_str[4];
+		       
+		       //Dado que no sabemos el tamaño de la cadena, usamos std::getline() para obtener un std::string de tamaño dinámico
+		       std::getline(fichero, datos_str[0], '|'); 
+		       
+		       //Repetimos el proceso con el segundo dato
+		       std::getline(fichero, datos_str[1], '|');        
+		
+		       //Leemos la cadena
+		       std::getline(fichero, datos_str[3], '\n');
+		               
+		               
+		       //Reconvertimos los datos a sus tipos originales
+		
+		       datos_obj = convertir_tipos_stringstream(datos_str);
+		}
+		
+		int main(){
+		       
+		       //Abrimos el fichero y escribimos
+		       std::string nom_fichero = "fichero";
+		       std::ofstream fichero_texto(nom_fichero.c_str()); 
+		
+		       datos datos_obj{23, 45.8, "prueba"};
+		       serializador_escritura_struct(fichero_texto, datos_obj);
+		
+		       datos datos_obj2{30, 70.965, "test con espacios"};
+		       serializador_escritura_struct(fichero_texto, datos_obj2);
+		
+		       fichero_texto.close();
+		
+		
+		       //Abrimos el fichero y leemos
+		       std::ifstream fichero(nom_fichero.c_str());
+		       datos datos_leidos;
+		       deserializador_lectura_struct(fichero, datos_leidos);
+		
+		       std::cout<<datos_leidos.dato1<<" "<<datos_leidos.dato2<<" "<<datos_leidos.cadena<<"\n";
+		
+		       deserializador_lectura_struct(fichero, datos_leidos);
+		
+		       std::cout<<datos_leidos.dato1<<" "<<datos_leidos.dato2<<" "<<datos_leidos.cadena<<"\n";
+		
+		       fichero.close();
+		
+		       return 0;
+		
+		}
 ## Consola
 
 ### Mala práctica 1: Uso de printf sin especificador de formato (C)
@@ -735,3 +835,14 @@ WIP
 ### Uso de stdbool.h para tipos booleanos (C)
 
 ### Uso de `using as` en lugar de `typedef` en C++
+
+
+## Referencias
+
+- https://cplusplus.com/articles/4z18T05o
+- https://learn.microsoft.com/es-es/windows/console/clearing-the-screen
+- https://stackoverflow.com/questions/32109646/how-to-write-a-struct-to-file-in-c-and-read-the-file
+- https://parzibyte.me/blog/2022/01/01/guardar-recuperar-struct-archivo-cpp/
+- https://stackoverflow.com/questions/21344106/serializing-struct-to-file-and-deserializing-it-again-with-string
+- https://en.cppreference.com/w/cpp/string/basic_string_view
+- 
