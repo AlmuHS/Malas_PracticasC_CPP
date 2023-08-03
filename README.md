@@ -243,7 +243,89 @@ Además, hay otros problemas:
 	
 	**WIP**
 	
+### Mala práctica 5: `atoi()` y `atof()`
 
+`atoi()` y `atof()` son dos funciones de C que permiten convertir de cadenas de caracteres basadas en arrays de char a variables de tipo `int` y `float` respectivamente.
+
+El problema que presentan es que, en caso de que la conversión falle, los valores devueltos podrían ser considerados conversiones válidas. 
+
+- `atoi()` devuelve 0 si la conversion falla. Pero ¿qué sucede si el valor que queremos convertir es, precisamente, 0?. Si estamos leyendo un valor desde un fichero o desde teclado, no podemos saber qué valor se va a pasar a la función. Y, por tanto, no podríamos saber si ese 0 es un indicador de fallo de conversión o es, en efecto, el número leído de fichero o teclado que queremos convertir.
+
+- `atof()` presenta un problema similar. En este caso, si la conversión falla, la función devuelve 0.0. Lo cual nos lleva a la misma situación que en `atoi()`. 
+
+Además, en caso de que el valor leído esté fuera de rango, el valor devuelto no está definido.
+
+#### Soluciones en C
+
+1. **Familia de funciones `strtof()` y `strtoimax()`**
+
+	Esta familia de funciones está formada por
+	
+	- `strtof()`: Conversión a `float`
+	- `strtod()`: Conversión a `double`
+	- `strtold()`: Conversión a `long double`
+	- `strtoimax()`: Conversión a `intmax_t` (el `int` de mayor tamaño)
+	- `strtouimax()`: Conversión a `uintmax_t` (el `unsigned int` de mayor tamaño)
+	- `strtoul()`: Conversión a `unsigned long`
+	- `strtoull()`: Conversión to `unsigned long long` 
+
+	La sintaxis de estas funciones es
+		
+		float strtof(char cadena_convertir[], char** puntero_siguiente_cadena);
+		intmax strtoimax(char cadena_convertir[], char** puntero_sig_cadena, int base_numero);
+
+	**NOTA: El resto son bastante similares, cambiando los tipos**
+
+	Donde `puntero_siguiente_cadena` es un puntero al inicio de la siguiente cadena a convertir. Estas funciones usan el espacio como separador de cadena, con lo cual el puntero apuntará al primer caracter tras el espacio al final de la cadena actual.
+	
+	En caso de éxito, devuelven el número ya convertido. En caso de que el valor no se pueda convertir, se escribirá en la variable `errno` el error correspondiente y la función devolverá 0. Así, en caso de recibir el valor 0, deberemos leer `errno` para asegurar que no se deba a un error de conversión. 
+	
+	En caso de que el valor convertido esté fuera de rango, `strtof()` devolverá `HUGE_VAL`, `HUGE_VALF` or `HUGE_VALL` según el caso y `errno` tomará el valor `ERANGE`. Si el fuera de rango se da en `strtointmax()`o `strtouintmax()`, este devolverá `INTMAX_MAX`, `INTMAX_MIN` o `UINTMAX_MAX`
+	
+	**Como defecto, estas funciones siguen devolviendo 0 en caso de que la cadena no tenga conversión a número.**
+	
+	Un ejemplo de uso con `strtoimax()` sería:
+	
+	
+		char cadena[] = "45";
+		char* siguiente;
+		
+		int valor = strtoimax(cadena, &siguiente);
+		
+		if(errno == ERANGE) printf("Error: valor fuera de rango);
+		else printf("El valor obtenido es %d", valor);
+	
+	
+2. **`sscanf()`**
+
+	Esta función es similar a `sprintf()`, pero usando la cadena como entrada en lugar de como salida. Es una versión de la función `scanf()` que permite leer los datos desde una cadena de caracteres.
+	
+	**Esta función tiene como ventaja respecto a las anteriores el que, en caso de que la cadena no tenga conversión posible, devuelve un valor erróneo`**, permitiendo saber si la cadena recibida no se corresponde un número.
+	
+	Su sintaxis es 
+		
+		int sscanf(const char cadena_convertir[], const char formato[], parametros...)
+	
+	En caso de éxito, la función guardará en las variables indicadas en los parámetros los valores en los tipos indicados en el formato, y devolverá la cantidad de variables rellenas. En caso de un error en la entrada antes de procesar los datos, devolverá EOF.
+	
+	De esta manera, podemos saber si ha habido algún error de conversión, comprobando si la cantidad de variables rellenas coincide con la cantidad de parámetros enviados a la función.
+	
+	 En este caso, para convertir a números, se realizaría algo como esto:
+	 
+	 	char cadena[] = "45";
+	 	int numero;
+	 	
+	 	int resultado = sscanf(cadena, "%d", numero);
+	 	if(resultado != 1) printf("Error de conversion");
+	 	else printf("El número recibido es %d\n", numero);
+	
+#### Soluciones en C++
+
+ En C++, disponemos de múltiples opciones dentro de la STL para convertir cadenas a números.
+ 
+ 
+
+	
 ## Namespaces (C++)
 
 ### Importación de namespaces global
