@@ -278,11 +278,12 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
 
 	Donde `puntero_siguiente_cadena` es un puntero al inicio de la siguiente cadena a convertir. Estas funciones usan el espacio como separador de cadena, con lo cual el puntero apuntará al primer caracter tras el espacio al final de la cadena actual.
 	
-	En caso de éxito, devuelven el número ya convertido. En caso de que el valor no se pueda convertir, se escribirá en la variable `errno` el error correspondiente y la función devolverá 0. Así, en caso de recibir el valor 0, deberemos leer `errno` para asegurar que no se deba a un error de conversión. 
+	En caso de éxito, devuelven el número ya convertido. En caso de que el valor no se pueda convertir, se escribirá en la variable `errno` el error correspondiente y la función devolverá 0. 
 	
 	En caso de que el valor convertido esté fuera de rango, `strtof()` devolverá `HUGE_VAL`, `HUGE_VALF` or `HUGE_VALL` según el caso y `errno` tomará el valor `ERANGE`. Si el fuera de rango se da en `strtointmax()`o `strtouintmax()`, este devolverá `INTMAX_MAX`, `INTMAX_MIN` o `UINTMAX_MAX`
 	
-	**Como defecto, estas funciones siguen devolviendo 0 en caso de que la cadena no tenga conversión a número.**
+	En algunos compiladores como GCC, la variable `errno` toma el valor `EINVAL` en caso de que la conversión no sea posible (por ejemplo, si el usuario introduce la cadena "cero"). **Pero esto no es estándar, por lo que en otros compiladores los flags podrían ser distintos, o incluso no generar flag en `errno` en esta situación**
+	
 	
 	Un ejemplo de uso con `strtoimax()` sería:
 	
@@ -308,7 +309,7 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
 	
 	En caso de éxito, la función guardará en las variables indicadas en los parámetros los valores en los tipos indicados en el formato, y devolverá la cantidad de variables rellenas. En caso de un error en la entrada antes de procesar los datos, devolverá EOF.
 	
-	De esta manera, podemos saber si ha habido algún error de conversión, comprobando si la cantidad de variables rellenas coincide con la cantidad de parámetros enviados a la función.
+	**De esta manera, podemos saber si ha habido algún error de conversión, comprobando si la cantidad de variables rellenas coincide con la cantidad de parámetros enviados a la función.**
 	
 	 En este caso, para convertir a números, se realizaría algo como esto:
 	 
@@ -323,8 +324,38 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
 
  En C++, disponemos de múltiples opciones dentro de la STL para convertir cadenas a números.
  
+1. Familia de funciones `std::stoi()` y `std::stof()`
+ 
+ 	Estas funciones son equivalentes a `atoi()` y `atof()`, pero tomando como entrada cadenas de `std::string`. Pero, como mejora a las anteriores, en caso de error, **estas funciones generan excepciones que nos permiten diferenciar el error obtenido.**
+ 	
+ 	- Si no hay conversión posible, se genera la excepción `std::invalid_argument `
+ 	- Si el valor está fuera del rango de su tipo de datos, se genera la excepción `std::out_of_range`. Además, se establece la variable `errno` a `ERANGE`
+ 	
+	Un ejemplo de uso de `str::stoi()`, partiendo de una cadena de C, sería:
+	
+		char cadena[] = "23";
+		std::string cadena_str(cadena);
+ 	
+ 		try{
+ 			int valor = std::stoi(cadena_str);
+ 		
+ 		}catch (std::invalid_argument const& ex) //valor no convertible a numero
+        {
+            std::cout << "std::invalid_argument::what(): " << ex.what() << '\n';
+        }
+        catch (std::out_of_range const& ex) //Valor fuera de rango
+        {
+            std::cout << "std::out_of_range::what(): " << ex.what() << '\n';
+            const long long ll{std::stoll(s, &pos)};
+            std::cout << "std::stoll('" << s << "'): " << ll << "; pos: " << pos << '\n';
+        }
+ 
+2. `std::stringstream`
+
+
  
 
+3. `std::from_chars()` (C++17 en adelante)
 	
 ## Namespaces (C++)
 
@@ -927,4 +958,5 @@ WIP
 - https://parzibyte.me/blog/2022/01/01/guardar-recuperar-struct-archivo-cpp/
 - https://stackoverflow.com/questions/21344106/serializing-struct-to-file-and-deserializing-it-again-with-string
 - https://en.cppreference.com/w/cpp/string/basic_string_view
-- 
+- https://stackoverflow.com/a/26083517
+- https://en.cppreference.com/w/cpp/string/basic_string/stol
