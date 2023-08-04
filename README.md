@@ -352,7 +352,47 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
  
 2. `std::stringstream`
 
+	La clase `std::stringstream` permite crear un `stream` a partir de una cadena de caracteres. Sobre ese stream se puede cargar un dato con el operador `<<` (como en `std::cout`) y extraerlo a una variable con el operador `>>`. Al extraer el dato a una variable, se aplica automáticamente la conversión necesaria para ajustarla a la misma. 
+	
+	En este caso, podemos utilizar la clase para cargar una cadena de caracteres y extraerla a una variable numérica como `int`, `float` o similar, de esta manera:
+	
+		char cadena[] = "20";
+		std::stringstream sstream(cadena);
+		int valor;
+		sstream >> valor;
+	
+	La función intentará convertir la cadena a un valor compatible con dicho tipo de datos y guardará el resultado en la variable indicada tras el operador. 
+	
+	En caso de error, la función activará los flags correspondientes:
+	
+	- `goodbit`: sin errores
+	- `eofbit`: fin de fichero encontrado durante la operación
+	- `failbit`: error de conversión
+	- `badbit`: error de lectura/escritura
 
+	Para comprobarlos, podemos usar el método `rdstate()` o podemos acceder a los métodos de la clase asociados a cada flag
+	
+	- método `fail()`: devuelve `true` si está activo `failbit`
+	- método `bad()`: devuelve `true` si está activo `badbit`
+	- método `eof(): devuelve `true` si está activo `eofbit`
+
+	Si queremos realizar una nueva operación sobre el stream, podemos utilizar el método `clear()` para borrar los flags anteriores
+ 
+ 	Un ejemplo de uso de `std::stringstream` sería
+ 	
+ 		char cadena[] = "20";
+ 		std::stringstream(cadena);
+ 		
+ 		int valor;
+ 		sstream >> valor;
+ 		
+ 		if(sstream.good()) std::cout<<"Operación correcta\n";
+ 		else if(sstream.bad())
+ 			std::cout<<"Error de lectura/escritura\n";
+ 		else if(sstream.fail())
+ 			std::cout<<"Error de conversión\n";
+ 		else if(sstream.eof())
+ 			std::cout<<"Error: final de fichero encontrado\n";
  
 
 3. `std::from_chars()` (C++17 en adelante)
@@ -960,3 +1000,4 @@ WIP
 - https://en.cppreference.com/w/cpp/string/basic_string_view
 - https://stackoverflow.com/a/26083517
 - https://en.cppreference.com/w/cpp/string/basic_string/stol
+- https://marketsplash.com/tutorials/cpp/cplusplus-stringstream/
