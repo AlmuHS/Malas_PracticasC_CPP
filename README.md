@@ -350,7 +350,7 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
             std::cout << "std::stoll('" << s << "'): " << ll << "; pos: " << pos << '\n';
         }
  
-2. `std::stringstream`
+2. **`std::stringstream`**
 
 	La clase `std::stringstream` permite crear un `stream` a partir de una cadena de caracteres. Sobre ese stream se puede cargar un dato con el operador `<<` (como en `std::cout`) y extraerlo a una variable con el operador `>>`. Al extraer el dato a una variable, se aplica automáticamente la conversión necesaria para ajustarla a la misma. 
 	
@@ -395,7 +395,65 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
  			std::cout<<"Error: final de fichero encontrado\n";
  
 
-3. `std::from_chars()` (C++17 en adelante)
+3. **`std::from_chars()` (C++17 en adelante)**
+
+	La función `std::from_chars()` permite convertir cadenas de caracteres a otro tipo de dato. A diferencia de `std::stringstream`, esta función no tiene en cuenta las locales del sistema, simplemente comprueba que el tamaño concuerda con el del tipo de dato. A cambio, es mas preciso que `std::stringstream` en números en coma flotante. 
+	
+	La función pertenece a la librería `<charconv>`
+	
+	Su sintaxis es
+	
+		std::from_chars_result std::from_chars(char *inicio_cadena, char *fin_cadena, [tipo_entero] &valor, int [base]); //Para valores enteros
+		
+		std::from_chars_result std::from_chars(char *inicio_cadena, char *fin_cadena, [tipo_flotante] &valor, std::chars_format [formato]);
+		
+	
+	El tipo del valor puede ser  cualquier tipo númerico, tanto de entero como en coma flotante. **Este parámetro almacenará el valor ya convertido tras la ejecución de la función**.
+	
+	- **En el caso de tipos enteros, podrá indicarse la base con la que se trabaja (base 10, base 16, base 2...). Si no se indica, se asumirá base 10**
+	
+	- **En los tipos de coma flotante, podrá indicarse distintos formatos**
+		+ Si el formato tiene `std::chars_format::scientific` pero no `std::chars_format::fixed`, se considerará notación científica y se requerirá un exponente.
+		+ En caso inverso, (scientific y no fixed), se asumirá coma fija y no se permitirá exponente
+		+ Si el formato es `std::chars_format::hex`, se considerará un valor hexadecimal y no se permitirán los prefijos `0X` ni `0x`. En caso de encontrarlos, se considerará que el valor es 0 y se despreciará el resto.
+		+ Además, los espacios en blanco iniciales no serán despreciados.
+	
+
+	La función devuelve un objeto de tipo `std::from_chars_result`, en el cual se indicará el éxito o fracaso de la operación
+	
+	- En caso de éxito, el atributo `ptr` apuntará al primer caracter que no coincida con el formato, o su valor será igual al del parámetro `fin_cadena` en caso de haber convertido la cadena completa.
+	
+	- Si la cadena no coincide con el formato indicado, o no se ha podido convertir al tipo indicado, el atributo `ptr` coincidirá con el parametro `inicio_cadena`, el atributo `ec` tomará el valor ` std::errc::invalid_argument`, y el parámetro `valor` no será modificado.
+	
+	- Si la cadena se ha podido convertir, pero el valor obtenido no cabe en el tipo indicado, el atributo `ec` tomará el valor `std::errc::result_out_of_range` y el atributo `ptr` coincidirá con `inicio_cadena`. Además, el parámetro `valor` no será modificado.
+	
+	Un ejemplo de uso es el siguiente:
+	
+		#include <charconv> // from_char, to_char
+		#include <string>
+		#include <iostream>
+		
+		int main()
+		{
+		    const std::string str { "12345678901234" };
+		    int valor = 0;
+		    std::from_chars_result resultado = std::from_chars(str.data(), str.data() + str.size(), valor);
+		
+		    if (resultado.ec == std::errc())
+		    {
+		        std::cout << "Valor obtenido: " << value 
+		                  << ", distancia recorrida: " << res.ptr - str.data() << '\n';
+		    }
+		    else if (resultado.ec == std::errc::invalid_argument)
+		    {
+		        std::cout << "Error: el valor no es representable en el formato indicado\n";
+		    }
+		    else if (resultado.ec == std::errc::result_out_of_range)
+		    {
+		        std::cout << "Error: valor fuera de rango!! distancia: " 
+		                  << resultado.ptr - str.data() << '\n';
+		    }
+		}
 	
 ## Namespaces (C++)
 
@@ -1001,3 +1059,7 @@ WIP
 - https://stackoverflow.com/a/26083517
 - https://en.cppreference.com/w/cpp/string/basic_string/stol
 - https://marketsplash.com/tutorials/cpp/cplusplus-stringstream/
+- https://en.cppreference.com/w/cpp/io/basic_stringstream
+- https://stackoverflow.com/a/55875943 
+- https://www.cppstories.com/2018/12/fromchars/
+- https://en.cppreference.com/w/cpp/utility/from_chars
