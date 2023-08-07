@@ -4,6 +4,134 @@
 
 En este documento expondré algunas malas prácticas habituales en C y C++ con fácil solución, explicando las causas de ser consideradas así, y algunas propuestas para evitarlas
 
+He de aclarar que este documento está pensado para poder ser explicado a estudiantes, por lo que he ignorado aquellas soluciones que tienen una complejidad excesiva, aún siendo utilizadas en ámbito profesional.
+
+## Variables
+
+### Mala práctica: declarar todas las variables arriba de la función
+
+En versiones muy antiguas de C, era necesario declarar todas las variables arriba de cada función, en las primeras líneas de la misma.
+
+Pero, desde C99 en C, además de en C++, esto ya no es necesario, siendo posible declarar las variables en cualquier parte del código, incluso dentro de ámbitos mas pequeños, como dentro de un condicional o un bucle.
+
+Así pues, la declaración de las variables arriba de la función se considera mala práctica, debido a que puede ser una causa de vulnerabilidades y errores.
+
+Por ejemplo, imaginemos que queremos mostrar la suma de cada fila de una matriz:
+
+	int main(void){}
+		int i,j;
+		int matriz[N][M];
+		int suma = 0;
+		
+		... 
+		for(i = 0; i < N; i++){
+		
+			//Error: ha olvidado reinicializar "suma", 
+			//por lo que la suma de las siguientes sumas partirán de la suma anterior
+			for(int j = 0; j < M; i++){
+				suma += matriz[i][j];
+			}
+			printf("La suma de la fila %d es %d\n", i, suma);
+		}
+
+Si el código es muy largo, es muy fácil despistarse y olvidar inicializar la variable `suma`
+
+Otro ejemplo sería el olvido de la inicialización
+
+	int main(void){
+		int i;
+		int vector[N];
+		int valor;
+		...
+		
+		while(i < N && vector[i] != valor) i++;
+		
+		...
+		
+		return 0;
+	}
+
+En este caso, si entre la declaración de la variable y el bucle hay muchas líneas, es posible que la declaración quede fuera de la visión en el momento de escribir el bucle, por lo que el programador podría confiar en que la variable se inicializó al declararla, y no se daría cuenta de que ha olvidado inicializarla.
+
+Otro problema mas sería la reutilización accidental de variables.
+
+#### Solución
+
+La solución consiste en declarar las variables u objetos en el lugar mas cercano a donde se van a usar, y en el ámbito mas pequeño necesario. 
+
+De esta forma, la declaración está visible cerca del bloque de código donde se va a usar, y es mas fácil comprobar las situaciones anteriores.
+
+A su vez, el declararlo dentro del ámbito mas pequeño necesario evita colisiones de nombres y posibles confusiones.
+
+**NOTA: Los compiladores actuales están pensados para optimizar este tipo de declaraciones de variables, por lo que el uso de muchas variables auxiliares no implica una reducción en el rendimiento**
+
+Por ejemplo, en el primer ejemplo:
+
+	int main(void){}
+		int i,j;
+		int matriz[N][M];
+		
+		... 
+		
+		for(i = 0; i < N; i++){
+		
+			/* la variable se redeclara en cada iteración y no existe fuera de
+			 * este for, por lo que el riesgo de ser reutilizada o
+			 * reasignada es muy pequeño   */
+			
+			int suma = 0; //se ve claramente su valor inicial
+			 
+			for(int j = 0; j < M; i++){
+				suma += matriz[i][j];
+			}
+			printf("La suma de la fila %d es %d\n", i, suma);
+		}
+	}
+
+En este caso, al declararla dentro del for externo, la variable se redeclara en cada iteración, y deja de existir al terminar el bucle. Esto implica lo siguiente:
+
+- No hay riesgo de que la variable sea reutilizada antes o despues del bucle for
+- La inicialización se hace junto a la declaración. Y, al estar dentro del bucle, se ve con mayor claridad.
+- La variable desaparece tras cada iteración del bucle externo, con lo cual queda asegurado la desaparición del valor anterior.
+
+
+El segundo ejemplo quedaría así  
+ 
+	int main(void){
+		int vector[N];
+		int valor;
+		...
+		
+		int i = 0;
+		while(i < N && vector[i] != valor) i++;
+		
+		...
+		
+		return 0;
+	}
+
+En este caso, la ventaja radica simplemente en el tener la declaración junto al inicio del bucle, quedando en el área de visión del programador al escribir ese bucle. Esto permite ver claramente el valor inicial de la variable, y cambiarlo rápidamente si es necesario.
+
+
+
+## Funciones
+
+### Mala práctica: Usar `()` en la declaración de funciones sin parámetros
+
+Una práctica común en C y C++ es declarar las funciones que no reciben parámetros como
+
+	[tipo] funcion();
+
+Sin embargo, en C y en algunas versiones antiguas de C++, este tipo de declaración hace referencias a un número de parámetros indefinido, de forma que la función admitiría el paso de argumentos.
+
+#### Solución
+
+Para que la función no admita ningún argumento, hay que declarar la función tal que
+
+	[tipo] funcion(void);
+
+En las últimas versiones de C++ esto ya está resuelto, pero aún así, sigue siendo recomendarlo explícitamente, para no depender de la versión y del compilador utilizados.
+
 ## Cadenas de caracteres
 
 ### Mala práctica 1: `gets()`: 
@@ -1046,6 +1174,10 @@ WIP
 ### Uso de stdbool.h para tipos booleanos (C)
 
 ### Uso de `using as` en lugar de `typedef` en C++
+
+### Uso de `std::string` para cadenas de caracteres (C++)
+
+### Uso de `std::vector` y `std::array` para vectores (dinámicos) y arrays (estáticos) en C++
 
 
 ## Referencias
