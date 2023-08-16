@@ -365,11 +365,85 @@ Además, hay otros problemas:
 	
 #### Alternativas en C++
 	
-1. `std::string_view`
+1. `std::string_view` (C++17)
 
 	Esta clase, disponible desde C++17, permite realizar operaciones de lectura y consulta sobre cadenas de caracteres, tanto std::string como arrays de char.
 	
-	**WIP**
+	Es importante recalcar que esta clase abre las cadenas en modo de *solo-lectura*, por lo que las operaciones de copia se realizarán sobre otras cadenas, y no sobre la que se ha cargado en la clase.
+	
+	La creación del objeto sería algo tal que:
+	
+		std::string_view sv{cadena};
+	
+	Donde cadena puede ser tanto un array de char tipo C, un `std::string` u otro tipo de contenedores que almacenen cadenas de caracteres.
+	
+	- **Comparar dos cadenas**
+	
+		Para comparar la cadena cargada en el objeto con otra cadena externa, se puede usar el método `compare`. Este tiene la siguiente sintaxis
+		
+			int std::string_view.compare(cadena2);
+
+		La función devuelve valores de forma similar a `strcmp()`
+		
+		- Devuelve 0 si son iguales
+		- Devuelve un valor negativo si la cadena cargada es menor a `cadena2`
+		- Devuelve un valor superior a 0 si la cadena cargada es mayor a `cadena2`	
+		
+		Un ejemplo de uso sería:
+	
+			#include <iostream>
+			#include <string_view>
+			
+			int main(){
+			  char cadena[5] = "hola";
+			  char cadena2[5] = "hola";
+			  char cadena3[5] = "Hola";
+			  std::string_view strv_cadena{cadena};
+			
+			  std::cout << "¿Son las cadenas 1 y 2 iguales? " << ((strv_cadena.compare(cadena2) == 0) ? "si" : "no") << '\n';
+			  std::cout << "¿Son las cadenas 1 y 3 iguales? " << ((strv_cadena.compare(cadena3) == 0) ? "yes" : "no") << '\n';
+			
+			  
+			  return 0;
+			
+			}
+
+		Esto mostraría por pantalla
+		
+			¿Son las cadenas 1 y 2 iguales? si
+			¿Son las cadenas 1 y 3 iguales? no
+
+	- **Copiar un `std::string_view` a otra cadena**
+	
+		También es posible copiar la cadena cargada en el string_view a otra cadena externa, usando el método `copy()`. Este tiene la sintaxis
+		
+			std::string_view.copy(char cadena[], int longitud, [int inicio]);
+		
+		Donde `cadena` debe ser un array de char, `longitud` es el número de caracteres a copiar, e `inicio` la posición desde la que empezamos a copiar. Si no se indica `inicio`, se tomará la primera posición de la cadena.
+		
+		**NOTA: `std::string_view` no añade el final de cadena `\0`, por lo que la cadena resultante podría mostrarse de forma incorrecta al pasarla a otras funciones**
+		
+		Un ejemplo de uso sencillo sería:
+		
+			#include <iostream>
+			#include <string_view>
+			
+			int main(){
+			  char cadena[5] = "hola";
+			  char cadena2[5]; //cadena destino
+			  std::string_view strv_cadena{cadena};
+			
+			  std::cout<<"El contenido del sv es "<<strv_cadena.data()<<"\n";
+			  
+			  strv_cadena.copy(cadena2, 4, 0);
+			  cadena2[4]='\0'; //añadimos el final de cadena manualmente, para que cout muestre la cadena de forma correcta
+			  std::cout<<"El contenido de la cadena 2 es "<<cadena2<<"\n";
+			  
+			  
+			  return 0;
+			
+			}
+	
 	
 ### Mala práctica 5: `atoi()` y `atof()`
 
@@ -1195,3 +1269,5 @@ WIP
 - https://stackoverflow.com/a/55875943 
 - https://www.cppstories.com/2018/12/fromchars/
 - https://en.cppreference.com/w/cpp/utility/from_chars
+- https://www.learncpp.com/cpp-tutorial/introduction-to-stdstring_view/
+- https://www.sandordargo.com/blog/2022/07/13/why_to_use_string_views
