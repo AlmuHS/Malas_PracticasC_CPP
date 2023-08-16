@@ -1333,9 +1333,111 @@ Su uso es muy simple
 
 ### Uso de `using as` en lugar de `typedef` en C++
 
+En C, el operador `typedef` permite crear un alias para un tipo ya existente.
+Esto se puede usar para poner una abreviatura a un tipo de dato con nombre largo o complejo.
+
+**WIP**
+
+
 ### Uso de `std::string` para cadenas de caracteres (C++)
 
+En C++, la clase `std::string` permite crear cadenas de caracteres de tamaño dinámico, además de incluir una gran cantidad de operadores para poder manipularlas.
+
+Esto aporta una gran cantidad de ventajas respecto a las cadenas basadas en arrays de char, propias de C:
+
+- Se puede asignar con `=` y comparar con `==`
+- Se puede concatenar con `+`
+- No se necesita conocer el tamaño inicial de la cadena para poder asignarlo
+	+ Tampoco hay que almacenarlo. Se puede obtener el tamaño con el método `size()`
+	
+Como único defecto, no permite definir cadenas de tamaño fijo, aunque se puede reservar un tamaño inicial en su constructor.
+
+Su uso es bastante sencillo:
+
+	#include <string>
+	#include <iostream>
+	
+	int main(){
+		std::string cadena1{"hola mundo"};
+		std::string cadena2{cadena1}; //cadena2 valdrá "hola mundo"
+		std::string cadena3 = "hola";
+		
+		cadena3 += " mundo"; //concatenamos la palabra " mundo" a cadena 3
+		
+		if(cadena3 == "hola mundo") std::cout<<"Cadena 3 concatenada correctamente\n";
+		else std::cout<<"El contenido de cadena 3 es "<<cadena3<<"\n";
+		
+		if(cadena1 == cadena3) std::cout<<"cadena1 y cadena3 son iguales\n";
+		else std::cout<<"cadena 1 y cadena 3 no son iguales\n";
+		
+		return 0;
+	}
+
+
 ### Uso de `std::vector` y `std::array` para vectores (dinámicos) y arrays (estáticos) en C++
+
+C++ proporciona las clases `std::vector` y `std::array` para vectores (tamaño dinámico) o arrays (tamaño fijo).
+
+Estas tienen múltiples ventajas respecto a los arrays de C, especialmente en `std::vector`
+
+- `std::vector` no necesita establecer un tamaño inicial (aunque se puede indicar)
+	+ En `std::array` se indica en el constructor
+- Se pueden comparar con == 
+- Se pueden asignar y copiar con `=`
+- Se pueden pasar por copia (aunque es poco recomendable)
+	+ Se pueden pasar por referencia de forma explícita (no degeneran a puntero)
+- Se pueden devolver en una función con `return`
+
+- Se puede obtener su tamaño con el método `size()`
+
+- **Se pueden combinar con templates**
+
+Su uso es bastante sencillo
+
+	#include <vector>
+	#include <array>
+	#include <iostream>
+	
+	int main(){
+		std::vector<std::string> v1;
+		v1.push_back("abc"); //inserta abc al final del vector (0 en este caso, dado que está vacío)
+		v1[1] = "fgh";
+		
+		std::vector<std::string> v2 = v1;
+		
+		if(v1 == v2){
+			std::cout<<"Asignación correcta\n";
+			std::cout<<"El tamaño de v2 es "<<v2.size()<<"\n";
+		}
+		
+		//crea un vector de 5 float (tamaño inicial) con valor 6.7
+		std::vector<float, 5, 6.7> vf; 
+		vf.push_back(8.6); //inserta un nuevo elemento (expandiendo el vector) con valor 8.6
+		
+		std::vector<float> vf2{vf}; //crea un nuevo vector con el mismo contenido de vf
+		vf2.erase(vf2.begin() + 2); //borra la posición 2, redimensionando el vector automáticamente
+		
+		std::array<int, 4> a = {1,2,3,4}; //crea un array de 4 posiciones de tipo int
+		std::array<int, 4> a1;
+  		a1 = {1,2,3,4};
+  
+  		std::array<int,4> a2{a1};
+  
+		for(int i = 0; i < a2.size(); i++){
+		    std::cout<<a2[i]<<" ";
+		}
+		  
+		a2[2] = 6;
+		  
+		std::cout<<"\n";
+		for(int data: a2){ //iteramos el array con un for-range
+		    std::cout<<data<<" "; //en cada iteración, data almacena el valor de una posición
+		}
+		
+		return 0;
+				
+	}
+
 
 
 ## Referencias
@@ -1357,3 +1459,4 @@ Su uso es muy simple
 - https://www.sandordargo.com/blog/2022/07/13/why_to_use_string_views
 - https://rules.sonarsource.com/c/RSPEC-929/
 - https://en.wikibooks.org/wiki/C_Programming/stdint.h
+- https://en.cppreference.com/w/cpp/container/vector
