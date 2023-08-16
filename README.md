@@ -124,11 +124,50 @@ Una práctica común en C es declarar las funciones que no reciben parámetros c
 
 Sin embargo, en C (y en algunas versiones muy antiguas de C++), este tipo de declaración hace referencias a un número de parámetros indefinido, de forma que la función admitiría el paso de argumentos.
 
+Un ejemplo sencillo sería este:
+
+	#include <stdio.h>
+	
+	void mifuncion(){
+		printf("Hola");
+	}
+	
+	int main(){
+		mifuncion(4,8);
+	}
+
+Este ejemplo, al compilarlo en C, compilaría sin problemas, incluso aplicando los últimos estándares.
+
 #### Solución
 
 Para que la función no admita ningún argumento, hay que declarar la función tal que
 
 	[tipo] funcion(void);
+
+Así, nuestro ejemplo quedaría de esta manera
+
+	#include <stdio.h>
+	
+	void mifuncion(void){
+		printf("Hola");
+	}
+	
+	int main(){
+		mifuncion(4,8);
+	}
+
+Y, al compilarlo, nos daría el error
+
+	funcion_c.c: In function ‘main’:
+	funcion_c.c:8:9: error: too many arguments to function ‘mifuncion’
+	    8 |         mifuncion(4,8);
+	      |         ^~~~~~~~~
+	funcion_c.c:3:6: note: declared here
+	    3 | void mifuncion(void){
+	      |      ^~~~~~~~~
+
+Asegurando así que no se permita ningún argumento en la llamada a la función
+
 
 ## Cadenas de caracteres
 
