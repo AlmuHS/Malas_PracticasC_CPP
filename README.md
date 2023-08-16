@@ -116,21 +116,19 @@ En este caso, la ventaja radica simplemente en el tener la declaración junto al
 
 ## Funciones
 
-### Mala práctica: Usar `()` en la declaración de funciones sin parámetros
+### Mala práctica: Usar `()` en la declaración de funciones sin parámetros (C)
 
-Una práctica común en C y C++ es declarar las funciones que no reciben parámetros como
+Una práctica común en C es declarar las funciones que no reciben parámetros como
 
 	[tipo] funcion();
 
-Sin embargo, en C y en algunas versiones antiguas de C++, este tipo de declaración hace referencias a un número de parámetros indefinido, de forma que la función admitiría el paso de argumentos.
+Sin embargo, en C (y en algunas versiones muy antiguas de C++), este tipo de declaración hace referencias a un número de parámetros indefinido, de forma que la función admitiría el paso de argumentos.
 
 #### Solución
 
 Para que la función no admita ningún argumento, hay que declarar la función tal que
 
 	[tipo] funcion(void);
-
-En las últimas versiones de C++ esto ya está resuelto, pero aún así, sigue siendo recomendarlo explícitamente, para no depender de la versión y del compilador utilizados.
 
 ## Cadenas de caracteres
 
