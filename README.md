@@ -1282,7 +1282,54 @@ WIP
 
 ### Uso de stdint.h para tipos enteros
 
+Los tipos clásicos para números enteros tienen un tamaño dependiente de la arquitectura
+
+- `int` usa 16 bits en x86_32 y 32 bits en x86_64
+- `long int` usa 32 bits en x86_32 y 64 bits en x86_64
+- `long long int` usa 64 bits en x86_32 y 64 bits en x86_64
+
+Esto supone un gran problema al hacer programas multiplataforma, dado que no se conoce con certeza el tamaño que tendrán las variables enteras. Así, no se puede asegurar que el dato quepa correctamente en el tipo de dato elegido, ni de que las operaciones no produzcan desbordamento. 
+
+O incluso, que un fichero binario escrito en una plataforma, se pueda leer en otro, dado que la cantidad de bytes puede ser distinto en origen y destino.
+
+
+#### Solución
+
+La librería `<stdint.h>` ofrece alternativas de tamaño fijo para los tipos clásicos. Estos son:
+
+- `int8_t`: Entero con signo de 8 bits
+- `uint8_t`: Entero sin signo de 8 bits
+- `int16_t`: Entero con signo de 16 bits
+- `uint16_t`: Entero sin signo de 16 bits
+- `int32_t`: Entero con signo de 32 bits
+- `uint32_t`: Entero sin signo de 32 bits
+- `int64_t`: Entero con signo de 64 bits
+- `uint64_t`: Entero sin signo de 64 bits
+
+Su uso es tan simple como indicar dichos tipos al crear la variable.  
+Por ejemplo:
+
+	#include <stdint.h>
+	
+	...
+	
+	int8_t littlenum;
+
 ### Uso de stdbool.h para tipos booleanos (C)
+
+En C, por defecto no hay tipos booleanos, y se suele considerar 0=false y 1=true.
+Pero esto puede ser problemático, habiendo escenarios donde no queda claro si la comparación comprueba un valor numérico o un booleano simulado mediante 0/1.
+
+#### Solución
+
+La librería `<stdbool.h>` ofrece un tipo `bool` en C, semejante al ya existente en C++. Este puede admitir los valores `true` y `false`, eliminando la confusión entre valores numéricos y booleanos.
+
+Su uso es muy simple
+
+	#include <stdbool.h>
+
+	bool cumple=true;
+
 
 ### Uso de `using as` en lugar de `typedef` en C++
 
@@ -1308,3 +1355,5 @@ WIP
 - https://en.cppreference.com/w/cpp/utility/from_chars
 - https://www.learncpp.com/cpp-tutorial/introduction-to-stdstring_view/
 - https://www.sandordargo.com/blog/2022/07/13/why_to_use_string_views
+- https://rules.sonarsource.com/c/RSPEC-929/
+- https://en.wikibooks.org/wiki/C_Programming/stdint.h
