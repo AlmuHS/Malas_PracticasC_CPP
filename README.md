@@ -1273,14 +1273,74 @@ En caso de usar soluciones dependientes del sistema, habrá que aplicar directiv
 
 ### Mala práctica 1: uso de `NULL` en lugar de `nullptr` (c++)
 
-WIP
+En C, la manera habitual de indicar que un puntero no está inicializado es asignarle el valor `NULL`. Este valor no tiene asignado ningún tipo, sino que es una simple definición tal que
+
+	#define NULL 0
+
+Pero esta definición es algo débil, por lo que puede ser utilizada de forma errónea
+
+	int array[20];
+	array[NULL] = 10;
+
+Como `NULL` vale 0, esta instruccion asignaría el valor 10 a la posición 0 del array, lo cual resulta confuso.
+
+#### Problemas en C++
+
+En C++, el problema se complica con los pasos por referencia. En un paso por referencia (no confundir con un paso por puntero), el acceso a la memoria de la variable original es implícito.
+
+La función se declara como
+
+	void funcion_referencia(_const_ [tipo] &parametro_referencia);
+
+Y se invoca con
+
+	[tipo] variable;
+	funcion_referencia(variable);
+
+Pero esto, al mezclarlo con el `NULL` de C, puede producir el siguiente problema
+
+	void funcion_referencia(const int& variable);
+	
+	...
+	
+	int main(){
+		funcion_referencia(NULL);
+	}
+
+Al ser una referencia constante, no requiere que se pase una variable explícitamente. Y, dado que `NULL` vale 0 y no tiene ningún tipo, su valor es compatible con el de una variable tipo `int` (o cualquier variable numérica, en general), por lo que la referencia asume un valor inválido.
+
+#### Solución
+
+La solución es usar `nullptr`. Esta es una variable de tipo `nullptr_t`, que reemplaza al `NULL` de C. Al tener un tipo, impide pasarlo por error como si fuera un valor numérico. E impide que se pueda utilizar para reemplazar el valor 0.
+
+Así pues, el caso anterior, al aplicar `nullptr` quedaría así:
+
+	void funcion_referencia(const int& variable);
+	
+	...
+	
+	int main(){
+		funcion_referencia(nullptr);
+	}
+
+
+Esto daría un error de compilación, puesto que `nullptr` no es de tipo `int` sino de tipo `nullptr_t`
+
+	funcion_cpp.cpp:8:19: error: invalid initialization of reference of type ‘const int&’ from expression of type ‘std::nullptr_t’
+
 
 ### Mala práctica 2: comprobación de éxito del operador `new` mediante comparación con `NULL` (c++)
+
+En C++, el operador `new` sirve para reservar memoria para una variable o para una estructura.
+
+Pero, a diferencia de su equivalente `malloc()` de C, `new` no devuelve `NULL` en caso de error al reservar memoria. En cambio, genera una excepción, que se captura con `try-catch`
+
+WIP
 
 
 ## Buenas prácticas
 
-### Uso de stdint.h para tipos enteros
+### Buena práctica 1: Uso de stdint.h para tipos enteros
 
 Los tipos clásicos para números enteros tienen un tamaño dependiente de la arquitectura
 
@@ -1315,7 +1375,7 @@ Por ejemplo:
 	
 	int8_t littlenum;
 
-### Uso de stdbool.h para tipos booleanos (C)
+### Buena práctica 2: Uso de stdbool.h para tipos booleanos (C)
 
 En C, por defecto no hay tipos booleanos, y se suele considerar 0=false y 1=true.
 Pero esto puede ser problemático, habiendo escenarios donde no queda claro si la comparación comprueba un valor numérico o un booleano simulado mediante 0/1.
@@ -1331,7 +1391,7 @@ Su uso es muy simple
 	bool cumple=true;
 
 
-### Uso de `using as` en lugar de `typedef` en C++
+### Buena práctica 3: Uso de `using as` en lugar de `typedef` en C++
 
 En C, el operador `typedef` permite crear un alias para un tipo ya existente.
 Esto se puede usar para poner una abreviatura a un tipo de dato con nombre largo o complejo.
@@ -1339,7 +1399,7 @@ Esto se puede usar para poner una abreviatura a un tipo de dato con nombre largo
 **WIP**
 
 
-### Uso de `std::string` para cadenas de caracteres (C++)
+### Buena práctica 4: Uso de `std::string` para cadenas de caracteres (C++)
 
 En C++, la clase `std::string` permite crear cadenas de caracteres de tamaño dinámico, además de incluir una gran cantidad de operadores para poder manipularlas.
 
@@ -1374,7 +1434,7 @@ Su uso es bastante sencillo:
 	}
 
 
-### Uso de `std::vector` y `std::array` para vectores (dinámicos) y arrays (estáticos) en C++
+### Buena práctica 5: Uso de `std::vector` y `std::array` para vectores (dinámicos) y arrays (estáticos) en C++
 
 C++ proporciona las clases `std::vector` y `std::array` para vectores (tamaño dinámico) o arrays (tamaño fijo).
 
@@ -1439,6 +1499,10 @@ Su uso es bastante sencillo
 	}
 
 
+### Buena práctica 6: Uso de `static_cast`, `dynamic_cast` ... para convertir tipos en C++
+
+WIP
+
 
 ## Referencias
 
@@ -1460,3 +1524,4 @@ Su uso es bastante sencillo
 - https://rules.sonarsource.com/c/RSPEC-929/
 - https://en.wikibooks.org/wiki/C_Programming/stdint.h
 - https://en.cppreference.com/w/cpp/container/vector
+- https://jesustorres.hashnode.dev/conversion-de-tipos-en-cpp
