@@ -1333,10 +1333,40 @@ Esto daría un error de compilación, puesto que `nullptr` no es de tipo `int` s
 
 En C++, el operador `new` sirve para reservar memoria para una variable o para una estructura.
 
-Pero, a diferencia de su equivalente `malloc()` de C, `new` no devuelve `NULL` en caso de error al reservar memoria. En cambio, genera una excepción, que se captura con `try-catch`
+Pero, a diferencia de su equivalente `malloc()` de C, `new` no devuelve `NULL` en caso de error al reservar memoria. En cambio, genera una excepción, que se captura con `try-catch`. Por tanto, este código no funcionaría
 
-WIP
+	int* data = new int;
+	if(data != NULL){ 
+		... 
+	}
 
+#### Solución 1: Capturar excepción con try-catch
+
+La primera solución consiste en capturar la excepción devuelta por `new`, que en este caso es `std::bad_alloc`. Esto se haría con un bloque try-catch tal que así
+
+	try {
+        int* dato = new int;
+ 	    std::cout<<"Memoria reservada correctamente\n"; //si la reserva es correcta, llegará aquí
+    }
+ 
+    // Si salta la excepción, la capturamos aquí
+    catch (const std::bad_alloc& e) {
+        std::cout<<"Error al reservar memoria: <<e.what()<<"\n";
+    }
+
+En caso de error,`e.what()` mostrará la causa del error.
+
+#### Solución 2: Desactivar lanzamiento de excepciones, devolviendo `nullptr`
+
+La segunda solución consiste en desactivar el lanzamiento de excepciones, forzando la devolución de `nullptr` (distinto de `NULL`, como indicamos anteriormente) en caso de error. Esto se hace aplicando la cláusula `std::nothrow` en el constructor de `new`.
+
+	int dato = new(std::nothrow) int;
+	if(dato == nullptr){
+		std::cout<<"Error al reservar memoria\n";
+	}
+	else{
+		... 
+	}
 
 ## Buenas prácticas
 
@@ -1525,3 +1555,5 @@ WIP
 - https://en.wikibooks.org/wiki/C_Programming/stdint.h
 - https://en.cppreference.com/w/cpp/container/vector
 - https://jesustorres.hashnode.dev/conversion-de-tipos-en-cpp
+- https://stackoverflow.com/questions/18628918/c-new-operator-and-error-checking
+- https://www.geeksforgeeks.org/if-memory-allocation-using-new-is-failed-in-c-then-how-it-should-be-handled/
