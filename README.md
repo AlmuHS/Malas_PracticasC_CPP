@@ -67,7 +67,7 @@ A su vez, el declararlo dentro del ámbito mas pequeño necesario evita colision
 
 Por ejemplo, en el primer ejemplo:
 
-	int main(void){}
+	int main(void){
 		int i,j;
 		int matriz[N][M];
 		
@@ -1354,7 +1354,7 @@ La primera solución consiste en capturar la excepción devuelta por `new`, que 
         std::cout<<"Error al reservar memoria: <<e.what()<<"\n";
     }
 
-En caso de error,`e.what()` mostrará la causa del error.
+En caso de error, `e.what()` mostrará la causa del error.
 
 #### Solución 2: Desactivar lanzamiento de excepciones, devolviendo `nullptr`
 
@@ -1370,7 +1370,7 @@ La segunda solución consiste en desactivar el lanzamiento de excepciones, forza
 
 ## Buenas prácticas
 
-### Buena práctica 1: Uso de stdint.h para tipos enteros
+### Buena práctica 1: Uso de `<stdint.h>` para tipos enteros
 
 Los tipos clásicos para números enteros tienen un tamaño dependiente de la arquitectura
 
@@ -1405,7 +1405,7 @@ Por ejemplo:
 	
 	int8_t littlenum;
 
-### Buena práctica 2: Uso de stdbool.h para tipos booleanos (C)
+### Buena práctica 2: Uso de `<stdbool.h>` para tipos booleanos (C)
 
 En C, por defecto no hay tipos booleanos, y se suele considerar 0=false y 1=true.
 Pero esto puede ser problemático, habiendo escenarios donde no queda claro si la comparación comprueba un valor numérico o un booleano simulado mediante 0/1.
@@ -1421,13 +1421,65 @@ Su uso es muy simple
 	bool cumple=true;
 
 
-### Buena práctica 3: Uso de `using as` en lugar de `typedef` en C++
+### Buena práctica 3: Uso de `using` en lugar de `typedef` en C++
 
-En C, el operador `typedef` permite crear un alias para un tipo ya existente.
+En C, el operador `typedef` permite crear tipos basados en un tipo ya existente.
 Esto se puede usar para poner una abreviatura a un tipo de dato con nombre largo o complejo.
 
-**WIP**
+En C++, desde C++11, existe la expresión `using` para crear alias a tipos. Esta tiene la sintaxis
 
+	using [alias] = tipo_original;
+
+Esta expresión tiene múltiples ventajas respecto al `typedef` de C:
+
+- **Creación de tipos basados en `templates`:** Se puede añadir un template a un alias, para que se aplique sobre el template del tipo original
+
+		template<typename T1, typename T2>
+		using dict = std::map<T1, std::vector<T2>>;
+
+		dict<std::string, int> dict_int;
+		dict<std::string, std::string> dict_str;
+		dict<int, float> dict_int_float;
+
+- **Creación de tipos sin nombre:** Esto sirve para eliminar el prefijo del *namespace* en los tipos provenientes de uno.
+
+		using std::cout;
+		cout<<"Hello world";
+
+- **Fácil modificación:** El alias se puede redefinir para asignarse a un nuevo tipo
+
+- **Sintaxis mas sencilla**: La sintaxis es mas sencilla e intuitiva que `typedef`. Por ejemplo, para crear un alias para una cadena basada en array de char.
+
+		typedef char cadena[MAXLONG]; //¿el tipo original es char o cadena?
+	
+	vs
+		
+		using cadena = char[MAXLONG];	 //queda mas claro que cadena es el alias y char[] el tipo original
+
+**Limitaciones**
+
+Como diferencia respecto a `typedef`, **`using` no es una sentencia de inicialización**, por lo que no se puede utilizar en contextos de inicialización. Por ejemplo, no se puede definir el tipo en la cabecera de un bucle for.
+
+En las últimas versiones de C++, a partir de C++23, ya se permite este tipo de uso, pero solo en algunos contextos.
+
+Por ejemplo, en este código usamos `typedef` en la inicialización del bucle for para definir un tipo `Foo`, que se utiliza en la condición del bucle.
+
+	for (typedef int Foo; Foo{} != 0;) //creamos el tipo dentro del inicializador del for
+	{
+	 ...
+	}
+
+Esto, con `typedef`, compila sin problemas. Pero si cambiamos el `typedef` por una sentencia `using`, nos saldrá un aviso indicando que esto solo es posible a partir de C++23.
+
+	for (using Foo = int; Foo{} != 0;) {}
+
+Nos saldrá este aviso
+
+	 warning: alias-declaration in init-statement only available with ‘-std=c++23’ or ‘-std=gnu++23’ [-Wc++23-extensions]
+	   14 |         for (using Foo = int; Foo{} != 0;) {
+
+
+Por tanto, el uso de `using` en sentencias de inicialización solo está admitido a partir de C++23, 
 
 ### Buena práctica 4: Uso de `std::string` para cadenas de caracteres (C++)
 
@@ -1472,7 +1524,7 @@ Estas tienen múltiples ventajas respecto a los arrays de C, especialmente en `s
 
 - `std::vector` no necesita establecer un tamaño inicial (aunque se puede indicar)
 	+ En `std::array` se indica en el constructor
-- Se pueden comparar con == 
+- Se pueden comparar con `==` 
 - Se pueden asignar y copiar con `=`
 - Se pueden pasar por copia (aunque es poco recomendable)
 	+ Se pueden pasar por referencia de forma explícita (no degeneran a puntero)
@@ -1557,3 +1609,8 @@ WIP
 - https://jesustorres.hashnode.dev/conversion-de-tipos-en-cpp
 - https://stackoverflow.com/questions/18628918/c-new-operator-and-error-checking
 - https://www.geeksforgeeks.org/if-memory-allocation-using-new-is-failed-in-c-then-how-it-should-be-handled/
+- https://en.cppreference.com/w/cpp/memory/new/operator_new
+- https://www.internalpointers.com/post/differences-between-using-and-typedef-modern-c
+- https://www.geeksforgeeks.org/cpp-using-vstypedef/
+- https://stackoverflow.com/a/62196340
+
