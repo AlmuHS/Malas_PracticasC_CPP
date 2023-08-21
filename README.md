@@ -66,6 +66,8 @@ En este documento expondré algunas malas prácticas habituales en C y C++ con f
 
 He de aclarar que este documento está pensado para poder ser explicado a estudiantes, por lo que he ignorado aquellas soluciones que tienen una complejidad excesiva, aún siendo utilizadas en ámbito profesional.
 
+Podéis encontrar mas información en las CppCoreGuidelines, redactadas por los autores del lenguaje C++ y basadas en sus estándares. https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
+
 ## Variables
 
 ### Mala práctica: declarar todas las variables arriba de la función
