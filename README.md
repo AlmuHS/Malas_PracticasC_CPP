@@ -1,5 +1,65 @@
 # Malas prácticas en C y C++ y su solución
 
+<!-- TOC -->
+
+- [Malas prácticas en C y C++ y su solución](#malas-pr%C3%A1cticas-en-c-y-c-y-su-soluci%C3%B3n)
+    - [Introducción](#introducci%C3%B3n)
+    - [Variables](#variables)
+        - [Mala práctica: declarar todas las variables arriba de la función](#mala-pr%C3%A1ctica-declarar-todas-las-variables-arriba-de-la-funci%C3%B3n)
+            - [Solución](#soluci%C3%B3n)
+    - [Funciones](#funciones)
+        - [Mala práctica: Usar  en la declaración de funciones sin parámetros C](#mala-pr%C3%A1ctica-usar--en-la-declaraci%C3%B3n-de-funciones-sin-par%C3%A1metros-c)
+            - [Solución](#soluci%C3%B3n)
+    - [Cadenas de caracteres](#cadenas-de-caracteres)
+        - [Mala práctica 1: gets:](#mala-pr%C3%A1ctica-1-gets)
+            - [Alternativas para C](#alternativas-para-c)
+            - [Alternativas para C++](#alternativas-para-c)
+        - [Mala práctica 2: fflush](#mala-pr%C3%A1ctica-2-fflush)
+            - [Alternativas para C:](#alternativas-para-c)
+            - [Alternativas para C++](#alternativas-para-c)
+        - [Mala práctica 3: Uso de la librería conio.h](#mala-pr%C3%A1ctica-3-uso-de-la-librer%C3%ADa-conioh)
+            - [Alternativas](#alternativas)
+        - [Mala práctica 4: Uso de strcmp, strcpy y similares](#mala-pr%C3%A1ctica-4-uso-de-strcmp-strcpy-y-similares)
+            - [Alternativas en C](#alternativas-en-c)
+            - [Alternativas en C++](#alternativas-en-c)
+        - [Mala práctica 5: atoi y atof](#mala-pr%C3%A1ctica-5-atoi-y-atof)
+            - [Soluciones en C](#soluciones-en-c)
+            - [Soluciones en C++](#soluciones-en-c)
+    - [Namespaces C++](#namespaces-c)
+        - [Importación de namespaces global](#importaci%C3%B3n-de-namespaces-global)
+            - [Solución 1: Uso del prefijo std::](#soluci%C3%B3n-1-uso-del-prefijo-std)
+            - [Solución 2: Importación local del namespace](#soluci%C3%B3n-2-importaci%C3%B3n-local-del-namespace)
+            - [Solución 3: Importación local de la librería o clase](#soluci%C3%B3n-3-importaci%C3%B3n-local-de-la-librer%C3%ADa-o-clase)
+    - [Ficheros](#ficheros)
+        - [Escritura en ficheros binarios](#escritura-en-ficheros-binarios)
+            - [Mala práctica 1: Escritura de struct en ficheros sin serializar](#mala-pr%C3%A1ctica-1-escritura-de-struct-en-ficheros-sin-serializar)
+    - [Consola](#consola)
+        - [Mala práctica 1: Uso de printf sin especificador de formato C](#mala-pr%C3%A1ctica-1-uso-de-printf-sin-especificador-de-formato-c)
+            - [Solución](#soluci%C3%B3n)
+        - [Mala práctica 2: Uso de system](#mala-pr%C3%A1ctica-2-uso-de-system)
+            - [Solución](#soluci%C3%B3n)
+                - [Alternativas a system"pause"](#alternativas-a-systempause)
+                - [Alternativas a system"cls"](#alternativas-a-systemcls)
+    - [Punteros](#punteros)
+        - [Mala práctica 1: uso de NULL en lugar de nullptr c++](#mala-pr%C3%A1ctica-1-uso-de-null-en-lugar-de-nullptr-c)
+            - [Problemas en C++](#problemas-en-c)
+            - [Solución](#soluci%C3%B3n)
+        - [Mala práctica 2: comprobación de éxito del operador new mediante comparación con NULL c++](#mala-pr%C3%A1ctica-2-comprobaci%C3%B3n-de-%C3%A9xito-del-operador-new-mediante-comparaci%C3%B3n-con-null-c)
+            - [Solución 1: Capturar excepción con try-catch](#soluci%C3%B3n-1-capturar-excepci%C3%B3n-con-try-catch)
+            - [Solución 2: Desactivar lanzamiento de excepciones, devolviendo nullptr](#soluci%C3%B3n-2-desactivar-lanzamiento-de-excepciones-devolviendo-nullptr)
+    - [Buenas prácticas](#buenas-pr%C3%A1cticas)
+        - [Buena práctica 1: Uso de <stdint.h> para tipos enteros](#buena-pr%C3%A1ctica-1-uso-de-stdinth-para-tipos-enteros)
+            - [Solución](#soluci%C3%B3n)
+        - [Buena práctica 2: Uso de <stdbool.h> para tipos booleanos C](#buena-pr%C3%A1ctica-2-uso-de-stdboolh-para-tipos-booleanos-c)
+            - [Solución](#soluci%C3%B3n)
+        - [Buena práctica 3: Uso de using en lugar de typedef en C++](#buena-pr%C3%A1ctica-3-uso-de-using-en-lugar-de-typedef-en-c)
+        - [Buena práctica 4: Uso de std::string para cadenas de caracteres C++](#buena-pr%C3%A1ctica-4-uso-de-stdstring-para-cadenas-de-caracteres-c)
+        - [Buena práctica 5: Uso de std::vector y std::array para vectores dinámicos y arrays estáticos en C++](#buena-pr%C3%A1ctica-5-uso-de-stdvector-y-stdarray-para-vectores-din%C3%A1micos-y-arrays-est%C3%A1ticos-en-c)
+        - [Buena práctica 6: Uso de static_cast, dynamic_cast ... para convertir tipos en C++](#buena-pr%C3%A1ctica-6-uso-de-static_cast-dynamic_cast--para-convertir-tipos-en-c)
+    - [Referencias](#referencias)
+
+<!-- /TOC -->
+
 ## Introducción
 
 En este documento expondré algunas malas prácticas habituales en C y C++ con fácil solución, explicando las causas de ser consideradas así, y algunas propuestas para evitarlas
@@ -1479,7 +1539,7 @@ Nos saldrá este aviso
 	   14 |         for (using Foo = int; Foo{} != 0;) {
 
 
-Por tanto, el uso de `using` en sentencias de inicialización solo está admitido a partir de C++23, 
+Por tanto, el uso de `using` en sentencias de inicialización solo está admitido a partir de C++23, y de forma limitada.
 
 ### Buena práctica 4: Uso de `std::string` para cadenas de caracteres (C++)
 
