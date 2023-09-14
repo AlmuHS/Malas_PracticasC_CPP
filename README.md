@@ -66,7 +66,7 @@ En este documento expondré algunas malas prácticas habituales en C y C++ con f
 
 He de aclarar que este documento está pensado para poder ser explicado a estudiantes, por lo que he ignorado aquellas soluciones que tienen una complejidad excesiva, aún siendo utilizadas en ámbito profesional.
 
-Podéis encontrar mas información en las CppCoreGuidelines, redactadas por los autores del lenguaje C++ y basadas en sus estándares. https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines
+Podéis encontrar mas información en las CppCoreGuidelines, redactadas por los autores del lenguaje C++ y basadas en sus estándares. https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines y https://isocpp.org/wiki/faq/ 
 
 ## Variables
 
@@ -76,8 +76,13 @@ En versiones muy antiguas de C, era necesario declarar todas las variables arrib
 
 Pero, desde C99 en C, además de en C++, esto ya no es necesario, siendo posible declarar las variables en cualquier parte del código, incluso dentro de ámbitos mas pequeños, como dentro de un condicional o un bucle.
 
-Así pues, la declaración de las variables arriba de la función se considera mala práctica, debido a que puede ser una causa de vulnerabilidades y errores.
+Así pues, la declaración de las variables arriba de la función se considera mala práctica, debido a que puede ser una causa de vulnerabilidades y errores. 
 
+Por un lado, si el programa es muy largo, es muy fácil generar errores, confundiendo los nombres de las variables, reutilizandolas de forma accidental, u olvidando la inicialización de las mismas; entre otras.
+
+Por otro, al existir todas las variables el ámbito superior de la función, es posible generar vulnerabilidades basadas en accesos erróneos a la pila, lo cual se incentiva si además se utilizan funciones sin control de tamaño que permiten acceder a memoria fuera de rango. 
+
+Pero, por el momento, nos centraremos en el primer problema:
 Por ejemplo, imaginemos que queremos mostrar la suma de cada fila de una matriz:
 
 	int main(void){}
@@ -239,6 +244,8 @@ Esta función es una mala práctica, prohibida en cualquier entorno de desarroll
    
    Esto hace que, una vez superado el tamaño del array de char, gets() siga escribiendo, lo cual puede producir que algunas variables se sobreescriban o incluso que el programa se cuelgue por completo.
       
+   Este fallo se ha utilizado para generar ataques de desbordamiento de pila en varias ocasiones. Por ejemplo, en el juego *The Legend of Zelda: Twilight Princess* se encontró el *Twilight hack* donde introduciendo un nombre mas largo de lo normal en uno de los personajes se acceder al Homebrew, lo cual se llegó a aprovechar para cargar juegos piratas en la Nintendo Wii 
+   
    Para evitarlo, existen distintas alternativas, según estemos en C o en C++
    
 #### Alternativas para C
@@ -371,8 +378,18 @@ En este caso no hay solución directa, simplemente “recetas” para leer los c
 	Para obtener los numeric_limits necesitamos incluir la librería limits
  		
 	  #include <limits>
+	  
+- **Usando `std::cin.get()`**: Esta estrategia es la misma que en C, pero cambiando `getchar()` por si equivalente `std::cin.get()`
+
+	La implementación sería así  
+	  
+	  char ch;
+      while( (ch=std::cin.get() != EOF) && ch != '\n' );
  		 
- ### Mala práctica 3: Uso de la librería conio.h
+	Su uso es el mismo que en C 		 
+
+
+### Mala práctica 3: Uso de la librería conio.h
  
  La librería conio.h fue creada por Borland para manipular la entrada y salida de la terminal de MSDOS. 
  
@@ -1123,7 +1140,32 @@ Esto puede resultar muy cómodo, pero entraña varios problemas:
 
 - Los comandos son dependientes del entorno de ejecucion y del sistema operativo, por lo que los programas no serían compatibles con otros sistemas
 
-- La orden `system()` es vulnerable a ataques de reemplazo del ejecutable. Si un atacante altera el ejecutable, podría reemplazar el comando invocado por otro con efectos malintencionados.
+- La orden `system()` es vulnerable a ataques de reemplazo del comando. Al ejecutar un comando del sistema, el programa está confiando en que ese comando realiza correctamente lo que se espera. 
+
+  Pero, si un atacante vulnera el sistema, podría reemplazar el ejecutable de ese comando por otro malicioso. Por ejemplo, creando un programa con el mismo nombre y añadiendolo al directorio de trabajo del programa, si estamos en Windows, o añadiendo el directorio con el ejecutable malicioso al PATH.
+
+  Si se diera esa situación, al ejecutar el comando con `system()` estaríamos ejecutando un programa malicioso sin ninguna posibilidad de evitarlo.
+  
+- Finalmente, la situación se vuelve mas peligrosa si el comando se crea a partir de una cadena introducida por teclado, lo cual podría dar lugar a ataques de inyeccion de código. Por ejemplo  
+
+		char directorio[20];
+		printf("Introduce el directorio: ");
+		fgets(directorio, 20, stdin);
+		char comando[40];
+		snprintf(comando, 40, "miprograma %s", directorio);
+		system(comando);
+		
+  Al ejecutarlo, podría suceder lo siguiente
+  
+  		Introduce directorio: carpeta & rm -rf /
+  		
+	Lo cual crearía el comando
+	
+		system("miprograma carpeta & rm -rf /");
+	
+	El cual borraría la raíz de cualquier sistema basado en UNIX
+	
+	
 
 #### Solución
 
@@ -1644,6 +1686,20 @@ Su uso es bastante sencillo
 
 
 ### Buena práctica 6: Uso de `static_cast`, `dynamic_cast` ... para convertir tipos en C++
+
+WIP
+
+
+### Buena práctica 7: Uso de punteros "inteligentes" (RAII) (`std::unique_ptr`, `std::shared_ptr` y similares) en lugar de punteros crudos en C++
+
+WIP
+
+### Buena práctica 8: Paso de objetos por referencias constantes en lugar de copia en C++
+
+WIP
+
+### Buena práctica 9: Uso de referencias en lugar de punteros cuando sea posible en C++
+
 
 WIP
 
