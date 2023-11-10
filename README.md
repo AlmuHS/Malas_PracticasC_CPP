@@ -243,7 +243,33 @@ Asegurando así que no se permita ningún argumento en la llamada a la función
 Esta función es una mala práctica, prohibida en cualquier entorno de desarrollo profesional. Esto se debe a que gets() no comprueba que la cadena recibida por teclado quepa en el array de char usado para almacenarlo.
    
    Esto hace que, una vez superado el tamaño del array de char, gets() siga escribiendo, lo cual puede producir que algunas variables se sobreescriban o incluso que el programa se cuelgue por completo.
-      
+   
+   Un ejemplo de este problema se puede ver en este bloque de código
+   
+	#include <stdio.h>
+	#include <string.h>
+	
+	int main(){
+	  char cadena2[11] = "cadena2";
+	  char cadena1[10] = "prueba";
+	  
+	  std::cout<<"Introduce una palabra: ";
+	  gets(cadena1);
+	  
+	  strupr(cadena1);
+	  
+	  printf("El contenido de la cadena1 es %s\n", cadena1);
+	  printf("El contenido de la cadena2 es %s\n", cadena2);
+	  
+	  return 0;
+	}
+	
+Si la ejecutamos e introducimos una cadena de mas de 10 caracteres, podremos ver errores como este
+
+	Introduce una palabra: cadena larga
+	El contenido de la cadena1 es cadena larga
+	El contenido de la cadena2 es ga
+
    Este fallo se ha utilizado para generar ataques de desbordamiento de pila en varias ocasiones. Por ejemplo, en el juego *The Legend of Zelda: Twilight Princess* se encontró el *Twilight hack* donde introduciendo un nombre mas largo de lo normal en uno de los personajes se acceder al Homebrew, lo cual se llegó a aprovechar para cargar juegos piratas en la Nintendo Wii 
    
    Para evitarlo, existen distintas alternativas, según estemos en C o en C++
@@ -772,7 +798,31 @@ Además, en caso de que el valor leído esté fuera de rango, el valor devuelto 
 		                  << resultado.ptr - str.data() << '\n';
 		    }
 		}
-	
+
+### Mala práctica 6: Uso de `strupr()`
+
+`strupr()` es una función que convierte una cadena de caracteres recibida por parámetro a mayúsculas. Su funcionamiento es sencillo
+
+	char cadena[] = "cadena";
+	strupr(cadena);
+	printf("%s", cadena);
+
+Esto convertirá cada caracter de la cadena a mayúsculas, y lo mostrará por pantalla.
+
+El problema viene de que esta función solo existe para Windows, y no forma parte de los estándares de C ni de C++. Por tanto, si se intenta compilar el programa en otro sistema operativo, dará un error de compilación al no encontrar la función.
+
+#### Solución
+
+La solución mas simple es utilizar un bucle para llamar a la función `toupper()`, que sí es estándar, convirtiendo la cadena a mayúsculas caracter a caracter.
+
+Esto se puede hacer, por ejemplo, con un bucle for, tal que así:
+
+	char cadena[20] = "cadena";
+	for(int i = 0; i < strlen(cadena); i++){
+		cadena[i] = toupper(cadena[i]);
+	}
+
+
 ## Namespaces (C++)
 
 ### Importación de namespaces global
