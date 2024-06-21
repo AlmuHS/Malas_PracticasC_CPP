@@ -12,11 +12,11 @@ void mifuncion(cadena cad){
 	}*/
 	
 	for (using Foo = int; Foo{} != 0;) {
-	  std::cout<<"cad\n";
+	  std::cout<<cad<<"\n";
 	}
 }
 
 int main(){
-  cadena cad;
+  cadena cad = "hola";
   mifuncion(cad);
 }
